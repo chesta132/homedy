@@ -2,10 +2,19 @@ package main
 
 import (
 	_ "homedy/config"
-	_ "homedy/internal/samba"
+	"homedy/internal/routes"
+	_ "homedy/internal/services/samba"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
+	g := gin.Default()
+
+	{
+		routes.RegisterSamba(g.Group("/samba"))
+	}
+
+	g.Run()
 }
