@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    container_name: homedy-app
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+    env_file:
+      - .env
+    volumes:
+      - ~/go/pkg/mod:/go/pkg/mod
+    networks:
+      - homedy-network
+
+networks:
+  homedy-network:
