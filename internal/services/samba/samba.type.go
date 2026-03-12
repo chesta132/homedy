@@ -10,7 +10,7 @@ const (
 type Share struct {
 	Path       string   `ini:"path"`
 	ReadOnly   Bool     `ini:"read only"`
-	Browsable  bool     `ini:"browsable"`
+	Browsable  Bool     `ini:"browsable"`
 	GuestUsers []string `ini:"guest users"`
 	AdminUsers []string `ini:"admin users"`
 }
