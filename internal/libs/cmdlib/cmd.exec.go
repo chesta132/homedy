@@ -6,12 +6,18 @@ import (
 	"strings"
 )
 
-func InstallPkgs(pkgs []string) *exec.Cmd {
+func InstallPkgs(pkgs []string) (*exec.Cmd, error) {
 	pkgsToInstall := filterUninstalledPkgs(pkgs)
 	if len(pkgsToInstall) <= 0 {
-		return nil
+		return nil, ErrNoPkgToInstall
 	}
-	logger.Cmd.Info("installing " + strings.Join(pkgsToInstall, ","))
+	pkgsToInstallStr := strings.Join(pkgsToInstall, ",")
+	logger.Cmd.Info("installing " + pkgsToInstallStr)
 	pkgsToInstall = append([]string{"install"}, pkgsToInstall...)
-	return exec.Command("apt", pkgsToInstall...)
+	cmd := exec.Command("apt", pkgsToInstall...)
+	err := cmd.Run()
+	if err != nil {
+		logger.Cmd.Info(pkgsToInstallStr+" installed", logger.Fields("duration", cmd.WaitDelay.String()))
+	}
+	return cmd, err
 }
