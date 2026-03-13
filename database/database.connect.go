@@ -1,16 +1,20 @@
 package database
 
 import (
-	"homedy/config"
+	"errors"
 
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func Connect() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(config.DB_PATH))
+	db, err := gorm.Open(postgres.Open(appDSN()))
 	if err != nil {
 		return nil, err
+	}
+
+	if ok, _ := isSuperUser(db); !ok {
+		return nil, errors.New("connected user is not a super user")
 	}
 
 	if err = migrate(db); err != nil {
