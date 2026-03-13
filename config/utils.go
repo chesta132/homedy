@@ -2,8 +2,8 @@ package config
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
+	"homedy/flags"
 	"os"
 	"strings"
 
@@ -29,10 +29,7 @@ func SplitByEnv[T any](prodValue, devValue T) T {
 }
 
 func init() {
-	envPathPtr := flag.String("env", "", "env path")
-	flag.Parse()
-
-	envPath := *envPathPtr
+	envPath := *flags.EnvPath
 	if envPath == "" {
 		// cmdlib.Input
 		fmt.Print("env path: ")

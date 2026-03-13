@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "homedy/flags"
+
 	_ "homedy/config"
 
 	"homedy/internal/routes"
