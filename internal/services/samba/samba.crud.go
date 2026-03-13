@@ -3,23 +3,30 @@ package samba
 import (
 	"fmt"
 	"homedy/internal/libs/iolib"
+	"homedy/internal/libs/replylib"
 	"os"
+
+	"github.com/chesta132/goreply/reply"
 )
 
 func AddShare(name string, share Share) (Shares, error) {
-	if name == "config" {
-		return nil, fmt.Errorf("%w: %s", ErrNameContainsInvalid, name)
-	}
-
 	shares, err := loadSmbConf()
 	if err != nil {
 		return nil, err
 	}
 
 	if _, ok := shares[name]; ok {
-		return nil, fmt.Errorf("%w: %s", ErrShareAlreadyExist, name)
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: fmt.Sprintf("%s: %s", ErrShareAlreadyExist.Error(), name),
+			Fields:  reply.FieldsError{"name": fmt.Sprintf("%s already exist", name)},
+		}
 	} else if isPathExist(shares, share) {
-		return nil, fmt.Errorf("%w: %s", ErrPathAlreadyExist, share.Path)
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: fmt.Sprintf("%s: %s", ErrPathAlreadyExist.Error(), share.Path),
+			Fields:  reply.FieldsError{"path": fmt.Sprintf("%s already exist", share.Path)},
+		}
 	}
 
 	shares[name] = share
@@ -44,12 +51,20 @@ func UpdateShare(name string, share Share) (Shares, error) {
 
 	oldShare, ok := shares[name]
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrShareNotExist, name)
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: fmt.Sprintf("%s: %s", ErrShareNotExist.Error(), name),
+			Fields:  reply.FieldsError{"name": fmt.Sprintf("%s not exist", name)},
+		}
 	}
 
 	delete(shares, name)
 	if isPathExist(shares, share) {
-		return nil, fmt.Errorf("%w: %s", ErrPathAlreadyExist, share.Path)
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: fmt.Sprintf("%s: %s", ErrPathAlreadyExist.Error(), share.Path),
+			Fields:  reply.FieldsError{"path": fmt.Sprintf("%s already exist", share.Path)},
+		}
 	}
 
 	shares[name] = share
@@ -72,7 +87,11 @@ func DeleteShare(name string) (Shares, error) {
 
 	share, ok := shares[name]
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrShareNotExist, name)
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: fmt.Sprintf("%s: %s", ErrShareNotExist.Error(), name),
+			Fields:  reply.FieldsError{"name": fmt.Sprintf("%s not exist", name)},
+		}
 	}
 	delete(shares, name)
 

@@ -33,7 +33,7 @@ func (h *Samba) AddShare(c *gin.Context) {
 	share := payload.ToShare()
 	shares, err := samba.AddShare(payload.Name, share)
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 	rp.Success(samba.FilterShares(shares)).CreatedJSON()
@@ -44,7 +44,7 @@ func (h *Samba) GetAll(c *gin.Context) {
 
 	shares, err := samba.ReadShare()
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 	rp.Success(samba.FilterShares(shares)).OkJSON()
@@ -61,7 +61,7 @@ func (h *Samba) GetOne(c *gin.Context) {
 
 	shares, err := samba.ReadShare()
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h *Samba) UpdateOne(c *gin.Context) {
 
 	shares, err := samba.UpdateShare(name, payload)
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 	rp.Success(samba.FilterShares(shares)).OkJSON()
@@ -110,7 +110,7 @@ func (h *Samba) DeleteOne(c *gin.Context) {
 
 	shares, err := samba.DeleteShare(name)
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 	rp.Success(samba.FilterShares(shares)).OkJSON()
@@ -123,7 +123,7 @@ func (h *Samba) GetConfiguration(c *gin.Context) {
 
 	config, err := samba.GetConfiguration()
 	if err != nil {
-		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		replylib.HandleError(err, rp)
 		return
 	}
 	rp.Success(config).OkJSON()
