@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"homedy/internal/libs/replylib"
+	"homedy/internal/libs/validatorlib"
 	"homedy/internal/payloads"
 	"homedy/internal/services/samba"
 
@@ -21,6 +22,11 @@ func (h *Samba) AddShare(c *gin.Context) {
 	var payload payloads.RequestAddShare
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToErrorArg(*errPayload)).FailJSON()
 		return
 	}
 
@@ -48,6 +54,11 @@ func (h *Samba) GetOne(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	name := c.Param("name")
 
+	if errPayload := validatorlib.ValidateStructToReply(payloads.TemplateShareName{Name: name}); errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToErrorArg(*errPayload)).FailJSON()
+		return
+	}
+
 	shares, err := samba.ReadShare()
 	if err != nil {
 		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
@@ -72,6 +83,14 @@ func (h *Samba) UpdateOne(c *gin.Context) {
 		return
 	}
 
+	if errPayload := validatorlib.ValidateStructToReply(payloads.RequestUpdateShare{
+		TemplateShareName: payloads.TemplateShareName{Name: name},
+		Share:             payload,
+	}); errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToErrorArg(*errPayload)).FailJSON()
+		return
+	}
+
 	shares, err := samba.UpdateShare(name, payload)
 	if err != nil {
 		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
@@ -83,6 +102,11 @@ func (h *Samba) UpdateOne(c *gin.Context) {
 func (h *Samba) DeleteOne(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	name := c.Param("name")
+
+	if errPayload := validatorlib.ValidateStructToReply(payloads.TemplateShareName{Name: name}); errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToErrorArg(*errPayload)).FailJSON()
+		return
+	}
 
 	shares, err := samba.DeleteShare(name)
 	if err != nil {
