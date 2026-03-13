@@ -24,13 +24,7 @@ func (h *Samba) AddShare(c *gin.Context) {
 		return
 	}
 
-	share := samba.Share{
-		Path:       payload.Path,
-		ReadOnly:   payload.ReadOnly,
-		Browsable:  payload.Browsable,
-		GuestUsers: payload.GuestUsers,
-		AdminUsers: payload.AdminUsers,
-	}
+	share := payload.ToShare()
 	// TODO: not only add conf but add directory with permission
 	shares, err := samba.AddConf(payload.Name, share)
 	if err != nil {
