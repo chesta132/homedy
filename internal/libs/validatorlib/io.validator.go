@@ -1,4 +1,4 @@
-package iolib
+package validatorlib
 
 import (
 	"reflect"

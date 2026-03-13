@@ -1,7 +1,6 @@
 package validatorlib
 
 import (
-	"homedy/internal/libs/iolib"
 	"homedy/internal/services/samba"
 	"reflect"
 	"slices"
@@ -57,7 +56,7 @@ func init() {
 	Client.RegisterValidation("samba_bool", registEnumValidation(samba.Bools))
 
 	// register basic validator
-	Client.RegisterValidation("share_name", basicValidatorToValidatorFunc(samba.ValidateShareName))
-	Client.RegisterValidation("abs_path", basicValidatorToValidatorFunc(iolib.ValidateAbsPath))
-	Client.RegisterValidation("file_permission", basicValidatorToValidatorFunc(iolib.ValidateFilePermission))
+	Client.RegisterValidation("share_name", basicValidatorToValidatorFunc(ValidateShareName))
+	Client.RegisterValidation("abs_path", basicValidatorToValidatorFunc(ValidateAbsPath))
+	Client.RegisterValidation("file_permission", basicValidatorToValidatorFunc(ValidateFilePermission))
 }

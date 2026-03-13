@@ -1,9 +1,9 @@
 package validatorlib
 
 import (
-	"reflect"
 	"homedy/config"
 	"homedy/internal/libs/replylib"
+	"reflect"
 	"strings"
 
 	"github.com/chesta132/goreply/reply"
@@ -69,7 +69,7 @@ func buildPrefixMap(val reflect.Value, parentPrefix string, prefixMap map[string
 	}
 }
 
-func TranslateError(err error, prefixMap map[string]string) reply.FieldsError {
+func translateError(err error, prefixMap map[string]string) reply.FieldsError {
 	valErrs, ok := err.(validator.ValidationErrors)
 	if !ok {
 		return nil
@@ -110,7 +110,7 @@ func ValidateStructToReply(s any) *reply.ErrorPayload {
 		prefixMap := extractPrefixMap(s)
 
 		// translate validator errors with prefix
-		fields := TranslateError(err, prefixMap)
+		fields := translateError(err, prefixMap)
 
 		return &reply.ErrorPayload{
 			Code:    replylib.CodeBadRequest,
