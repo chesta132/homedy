@@ -1,8 +1,12 @@
 package samba
 
 func FilterShares(shares Shares) Shares {
-	delete(shares, "global")
-	delete(shares, "printers")
-	delete(shares, "print$")
-	return shares
+	result := make(Shares)
+	for k, v := range shares {
+		if k != "global" && k != "printers" && k != "print$" {
+			result[k] = v
+		}
+	}
+
+	return result
 }
