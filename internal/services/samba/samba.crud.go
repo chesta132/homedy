@@ -7,6 +7,10 @@ import (
 )
 
 func AddShare(name string, share Share) (Shares, error) {
+	if name == "config" {
+		return nil, fmt.Errorf("%w: %s", ErrNameContainsInvalid, name)
+	}
+
 	shares, err := loadSmbConf()
 	if err != nil {
 		return nil, err
