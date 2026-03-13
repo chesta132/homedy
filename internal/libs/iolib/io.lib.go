@@ -50,7 +50,7 @@ func SetPermission(path string, permissions []int, recursive bool) error {
 	if len(permissions) != 3 {
 		return fmt.Errorf("%w: must be 3 items", ErrPermissionLength)
 	}
-	for permission := range permissions {
+	for _, permission := range permissions {
 		if permission > 7 || permission < 0 {
 			return fmt.Errorf("%w: %d", ErrPermissionNotKnown, permission)
 		}
@@ -61,20 +61,28 @@ func SetPermission(path string, permissions []int, recursive bool) error {
 	}
 
 	permissionSlcStr := slicelib.Map(permissions, func(i int, p int) string { return strconv.Itoa(p) })
-	permissionStr := strings.Join(append([]string{"0"}, permissionSlcStr...), "")
-	permissionInt, _ := strconv.Atoi(permissionStr)
+	permissionStr := strings.Join(permissionSlcStr, "")
+	permissionInt, err := strconv.ParseInt(permissionStr, 8, 32)
+	if err != nil {
+		return fmt.Errorf("failed to parse permission: %w", err)
+	}
+
+	fileMode := os.FileMode(permissionInt)
 
 	if !recursive {
-		return os.Chmod(path, os.FileMode(permissionInt))
+		return os.Chmod(path, fileMode)
 	}
 
 	return filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
-		return os.Chmod(p, os.FileMode(permissionInt))
+		if err != nil {
+			return err
+		}
+		return os.Chmod(p, fileMode)
 	})
 }
 
 func MakeDirWithPerm(path string, permission []int) error {
-	err := os.MkdirAll(path, os.ModeDir)
+	err := os.MkdirAll(path, 0755)
 	if err != nil {
 		return fmt.Errorf("error while make dir all: %w", err)
 	}
