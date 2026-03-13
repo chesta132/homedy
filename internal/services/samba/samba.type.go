@@ -13,7 +13,7 @@ type Share struct {
 	Browsable   Bool     `ini:"browsable,omitempty" json:"browsable" example:"yes"`
 	ValidUsers  []string `ini:"valid users,omitempty" json:"valid_users" example:"['guest']"`
 	AdminUsers  []string `ini:"admin users,omitempty" json:"admin_users" example:"['root']"`
-	Permissions []int    `ini:"-" json:"permissions" example:"[7, 7, 7]"`
+	Permissions []int    `ini:"homedy permission,omitempty" json:"permissions" example:"[7, 7, 7]"`
 }
 
 type Shares map[string]Share
