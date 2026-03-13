@@ -6,3 +6,8 @@ var (
 	GO_ENV      = os.Getenv("GO_ENV")
 	SERVER_PORT = os.Getenv("PORT")
 )
+
+func ReloadEnv() {
+	GO_ENV = os.Getenv("GO_ENV")
+	SERVER_PORT = os.Getenv("PORT")
+}

@@ -2,11 +2,11 @@ package main
 
 import (
 	_ "homedy/config"
+
 	"homedy/internal/routes"
 	_ "homedy/internal/services/samba"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
