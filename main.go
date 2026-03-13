@@ -13,6 +13,7 @@ func main() {
 	g := gin.Default()
 
 	{
+		routes.RegisterWebsocket(g.Group("/ws"))
 		routes.RegisterSamba(g.Group("/samba"))
 	}
 
