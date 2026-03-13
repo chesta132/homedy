@@ -1,6 +1,7 @@
 package main
 
 import (
+	"homedy/database"
 	_ "homedy/flags"
 
 	_ "homedy/config"
@@ -12,6 +13,11 @@ import (
 )
 
 func main() {
+	_, err := database.Connect()
+	if err != nil {
+		panic(err)
+	}
+
 	g := gin.Default()
 
 	{
