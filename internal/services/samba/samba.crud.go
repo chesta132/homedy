@@ -16,7 +16,7 @@ func AddConf(name string, share Share) (Shares, error) {
 	}
 	shares[name] = share
 
-	return shares, saveSmbConf(shares)
+	return shares, saveSmbConf(FilterShares(shares))
 }
 
 func ReadConf() (Shares, error) {
@@ -34,7 +34,7 @@ func UpdateConf(name string, share Share) (Shares, error) {
 	}
 	shares[name] = share
 
-	return shares, saveSmbConf(shares)
+	return shares, saveSmbConf(FilterShares(shares))
 }
 
 func DeleteConf(name string) (Shares, error) {
@@ -47,5 +47,5 @@ func DeleteConf(name string) (Shares, error) {
 		return nil, errors.Join(ErrShareNotExist, fmt.Errorf(": %s", name))
 	}
 
-	return shares, saveSmbConf(shares)
+	return shares, saveSmbConf(FilterShares(shares))
 }
