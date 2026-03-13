@@ -32,18 +32,19 @@ func init() {
 	envPathPtr := flag.String("env", "", "env path")
 	flag.Parse()
 
-	envPath := ""
-	if envPathPtr == nil {
+	envPath := *envPathPtr
+	if envPath == "" {
 		// cmdlib.Input
 		fmt.Print("env path: ")
 		reader := bufio.NewReader(os.Stdin)
 		input, _ := reader.ReadString('\n')
 		envPath = strings.TrimSpace(input)
-	} else {
-		envPath = *envPathPtr
 	}
 
-	godotenv.Load(envPath)
+	err := godotenv.Load(envPath)
+	if err != nil {
+		panic(err)
+	}
 	ReloadEnv()
 	if IsEnvDev() || IsEnvProd() {
 		return
