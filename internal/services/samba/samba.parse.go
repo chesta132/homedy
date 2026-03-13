@@ -7,8 +7,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// FIXME: global and other default config reset while save conf
-
 func loadConf(path string) (Shares, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
