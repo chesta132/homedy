@@ -31,12 +31,17 @@ func AddShare(name string, share Share) (Shares, error) {
 
 	shares[name] = share
 
+	err = saveSmbConf(FilterShares(shares))
+	if err != nil {
+		return nil, err
+	}
+
 	err = iolib.MakeDirWithPerm(share.Path, share.Permissions)
 	if err != nil {
 		return nil, err
 	}
 
-	return shares, saveSmbConf(FilterShares(shares))
+	return shares, nil
 }
 
 func ReadShare() (Shares, error) {
@@ -69,6 +74,11 @@ func UpdateShare(name string, share Share) (Shares, error) {
 
 	shares[name] = share
 
+	err = saveSmbConf(FilterShares(shares))
+	if err != nil {
+		return nil, err
+	}
+
 	if oldShare.Path != share.Path {
 		err = iolib.MakeDirWithPerm(share.Path, share.Permissions)
 		if err != nil {
@@ -76,7 +86,7 @@ func UpdateShare(name string, share Share) (Shares, error) {
 		}
 	}
 
-	return shares, saveSmbConf(FilterShares(shares))
+	return shares, nil
 }
 
 func DeleteShare(name string) (Shares, error) {
@@ -93,9 +103,14 @@ func DeleteShare(name string) (Shares, error) {
 			Fields:  reply.FieldsError{"name": fmt.Sprintf("%s not exist", name)},
 		}
 	}
-	delete(shares, name)
+
+	err = removeSmbConf(name)
+	if err != nil {
+		return nil, err
+	}
 
 	_ = os.RemoveAll(share.Path)
 
-	return shares, removeSmbConf(name)
+	delete(shares, name)
+	return shares, nil
 }
