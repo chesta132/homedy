@@ -91,3 +91,16 @@ func (h *Samba) DeleteOne(c *gin.Context) {
 	}
 	rp.Success(samba.FilterShares(shares)).OkJSON()
 }
+
+// configuration
+
+func (h *Samba) GetConfiguration(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	config, err := samba.GetConfiguration()
+	if err != nil {
+		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
+		return
+	}
+	rp.Success(config).OkJSON()
+}
