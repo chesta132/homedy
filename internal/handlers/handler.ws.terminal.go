@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"homedy/internal/services/terminal"
-	"homedy/internal/ws"
+	"homedy/internal/libs/ws"
 
 	"github.com/gin-gonic/gin"
 )
