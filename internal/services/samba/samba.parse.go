@@ -6,6 +6,8 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// FIXME: global and other default config reset while save conf
+
 func loadConf(path string) (Shares, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
@@ -31,7 +33,10 @@ func loadSmbConf() (Shares, error) {
 }
 
 func save(path string, shares Shares) error {
-	cfg := ini.Empty()
+	cfg, err := ini.Load(path)
+	if err != nil {
+		cfg = ini.Empty()
+	}
 	for name, share := range shares {
 		section, err := cfg.NewSection(name)
 		if err != nil {
