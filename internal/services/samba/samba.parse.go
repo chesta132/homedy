@@ -58,3 +58,23 @@ func save(path string, shares Shares) error {
 func saveSmbConf(shares Shares) error {
 	return save(config.SMB_CONF_PATH, shares)
 }
+
+func remove(path string, name string) error {
+	cfg, err := ini.Load(path)
+	if err != nil {
+		cfg = ini.Empty()
+	}
+
+	cfg.DeleteSection(name)
+
+	err = cfg.SaveTo(path)
+	if err != nil {
+		return err
+	}
+	_, err = cmdlib.RestartService("smbd")
+	return err
+}
+
+func removeSmbConf(name string) error {
+	return remove(config.SMB_CONF_PATH, name)
+}

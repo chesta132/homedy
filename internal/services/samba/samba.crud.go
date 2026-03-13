@@ -74,5 +74,5 @@ func DeleteShare(name string) (Shares, error) {
 
 	_ = os.RemoveAll(share.Path)
 
-	return shares, saveSmbConf(FilterShares(shares))
+	return shares, removeSmbConf(name)
 }
