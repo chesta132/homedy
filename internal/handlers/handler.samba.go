@@ -128,3 +128,19 @@ func (h *Samba) GetConfiguration(c *gin.Context) {
 	}
 	rp.Success(config).OkJSON()
 }
+
+func (h *Samba) UpdateConfig(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload samba.ShareMap
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	err := samba.UpdateConfig(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+	rp.Success(payload).OkJSON()
+}

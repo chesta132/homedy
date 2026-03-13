@@ -1,6 +1,6 @@
 package samba
 
-func GetConfiguration() (map[string]string, error) {
+func GetConfiguration() (ShareMap, error) {
 	shares, err := loadSmbConfMap()
 	if err != nil {
 		return nil, err
@@ -11,4 +11,14 @@ func GetConfiguration() (map[string]string, error) {
 		return nil, ErrConfigNotExist
 	}
 	return global, nil
+}
+
+func UpdateConfig(update ShareMap) error {
+	shares, err := loadSmbConfMap()
+	if err != nil {
+		return err
+	}
+
+	shares["global"] = update
+	return saveSmbConfMap(shares)
 }

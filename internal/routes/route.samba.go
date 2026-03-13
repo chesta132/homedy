@@ -22,4 +22,5 @@ func registerSambaConfig(group *gin.RouterGroup) {
 	h := handlers.NewSamba()
 
 	group.GET("/", h.GetConfiguration)
+	group.PUT("/", h.UpdateConfig)
 }
