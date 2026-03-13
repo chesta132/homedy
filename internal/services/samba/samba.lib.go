@@ -10,3 +10,12 @@ func FilterShares(shares Shares) Shares {
 
 	return result
 }
+
+func isPathExist(shares Shares, share Share) bool {
+	for _, _share := range shares {
+		if _share.Path == share.Path {
+			return true
+		}
+	}
+	return false
+}

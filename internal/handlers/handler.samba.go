@@ -26,7 +26,8 @@ func (h *Samba) AddShare(c *gin.Context) {
 
 	share := payload.ToShare()
 	// TODO: not only add conf but add directory with permission
-	shares, err := samba.AddConf(payload.Name, share)
+	shares, err := samba.AddShare(payload.Name, share)
+	// TODO: reset smb
 	if err != nil {
 		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
 		return
@@ -37,7 +38,7 @@ func (h *Samba) AddShare(c *gin.Context) {
 func (h *Samba) GetAll(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	shares, err := samba.ReadConf()
+	shares, err := samba.ReadShare()
 	if err != nil {
 		rp.Error(replylib.CodeServerError, err.Error()).FailJSON()
 		return

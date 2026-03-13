@@ -1,51 +1,78 @@
 package samba
 
 import (
-	"errors"
 	"fmt"
+	"homedy/internal/libs/iolib"
+	"os"
 )
 
-func AddConf(name string, share Share) (Shares, error) {
+func AddShare(name string, share Share) (Shares, error) {
 	shares, err := loadSmbConf()
 	if err != nil {
 		return nil, err
 	}
 
 	if _, ok := shares[name]; ok {
-		return nil, errors.Join(ErrShareAlreadyExist, fmt.Errorf(": %s", name))
+		return nil, fmt.Errorf("%w: %s", ErrShareAlreadyExist, name)
+	} else if isPathExist(shares, share) {
+		return nil, fmt.Errorf("%w: %s", ErrPathAlreadyExist, share.Path)
 	}
+
 	shares[name] = share
+
+	err = iolib.MakeDirWithPerm(share.Path, share.Permissions)
+	if err != nil {
+		return nil, err
+	}
 
 	return shares, saveSmbConf(FilterShares(shares))
 }
 
-func ReadConf() (Shares, error) {
+func ReadShare() (Shares, error) {
 	return loadSmbConf()
 }
 
-func UpdateConf(name string, share Share) (Shares, error) {
+func UpdateShare(name string, share Share) (Shares, error) {
 	shares, err := loadSmbConf()
 	if err != nil {
 		return nil, err
 	}
 
-	if _, ok := shares[name]; !ok {
-		return nil, errors.Join(ErrShareNotExist, fmt.Errorf(": %s", name))
+	oldShare, ok := shares[name]
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrShareNotExist, name)
 	}
+
+	delete(shares, name)
+	if isPathExist(shares, share) {
+		return nil, fmt.Errorf("%w: %s", ErrPathAlreadyExist, share.Path)
+	}
+
 	shares[name] = share
+
+	if oldShare.Path != share.Path {
+		err = iolib.MakeDirWithPerm(share.Path, share.Permissions)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return shares, saveSmbConf(FilterShares(shares))
 }
 
-func DeleteConf(name string) (Shares, error) {
+func DeleteShare(name string) (Shares, error) {
 	shares, err := loadSmbConf()
 	if err != nil {
 		return nil, err
 	}
 
-	if _, ok := shares[name]; !ok {
-		return nil, errors.Join(ErrShareNotExist, fmt.Errorf(": %s", name))
+	share, ok := shares[name]
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrShareNotExist, name)
 	}
+	delete(shares, name)
+
+	_ = os.RemoveAll(share.Path)
 
 	return shares, saveSmbConf(FilterShares(shares))
 }
