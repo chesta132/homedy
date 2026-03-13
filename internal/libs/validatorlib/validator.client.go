@@ -59,4 +59,6 @@ func init() {
 	Client.RegisterValidation("share_name", basicValidatorToValidatorFunc(ValidateShareName))
 	Client.RegisterValidation("abs_path", basicValidatorToValidatorFunc(ValidateAbsPath))
 	Client.RegisterValidation("file_permission", basicValidatorToValidatorFunc(ValidateFilePermission))
+	Client.RegisterValidation("username", basicValidatorToValidatorFunc(ValidateUsername))
+	Client.RegisterValidation("password", basicValidatorToValidatorFunc(ValidatePassword))
 }

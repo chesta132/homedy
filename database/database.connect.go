@@ -13,7 +13,7 @@ func Connect() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err = migrate(); err != nil {
+	if err = migrate(db); err != nil {
 		return nil, err
 	}
 

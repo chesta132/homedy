@@ -1,5 +1,11 @@
 package database
 
-func migrate() error {
-	return nil
+import (
+	"homedy/internal/models"
+
+	"gorm.io/gorm"
+)
+
+func migrate(db *gorm.DB) error {
+	return db.AutoMigrate(&models.User{})
 }
