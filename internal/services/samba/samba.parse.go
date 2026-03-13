@@ -2,6 +2,7 @@ package samba
 
 import (
 	"homedy/config"
+	"homedy/internal/libs/cmdlib"
 
 	"gopkg.in/ini.v1"
 )
@@ -46,7 +47,12 @@ func save(path string, shares Shares) error {
 			return err
 		}
 	}
-	return cfg.SaveTo(path)
+	err = cfg.SaveTo(path)
+	if err != nil {
+		return err
+	}
+	_, err = cmdlib.RestartService("smbd")
+	return err
 }
 
 func saveSmbConf(shares Shares) error {
