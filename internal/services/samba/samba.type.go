@@ -19,3 +19,6 @@ type Share struct {
 }
 
 type Shares map[string]Share
+
+type ShareMap map[string]string
+type ShareMaps map[string]ShareMap

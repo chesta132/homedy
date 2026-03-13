@@ -2,23 +2,22 @@ package samba
 
 import (
 	"homedy/config"
-	"homedy/internal/libs/cmdlib"
 
 	"gopkg.in/ini.v1"
 )
 
-func loadConfMap(path string) (map[string]map[string]string, error) {
+func loadConfMap(path string) (ShareMaps, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		return nil, err
 	}
 
-	cfgMap := make(map[string]map[string]string)
+	cfgMap := make(ShareMaps)
 	for _, section := range cfg.Sections() {
 		if section.Name() == "DEFAULT" {
 			continue
 		}
-		val := make(map[string]string)
+		val := make(ShareMap)
 		for _, key := range section.Keys() {
 			val[key.Name()] = key.Value()
 		}
@@ -27,8 +26,33 @@ func loadConfMap(path string) (map[string]map[string]string, error) {
 	return cfgMap, nil
 }
 
-func loadSmbConfMap() (map[string]map[string]string, error) {
+func loadSmbConfMap() (ShareMaps, error) {
 	return loadConfMap(config.SMB_CONF_PATH)
+}
+
+func saveMap(path string, maps ShareMaps) error {
+	cfg, err := ini.Load(path)
+	if err != nil {
+		cfg = ini.Empty()
+	}
+	for name, share := range maps {
+		section, err := cfg.NewSection(name)
+		if err != nil {
+			return err
+		}
+		for k, v := range share {
+			section.NewKey(k, v)
+		}
+	}
+	err = cfg.SaveTo(path)
+	if err != nil {
+		return err
+	}
+	return restartService()
+}
+
+func saveSmbConfMap(maps ShareMaps) error {
+	return saveMap(config.SMB_CONF_PATH, maps)
 }
 
 func loadConf(path string) (Shares, error) {
@@ -73,8 +97,7 @@ func save(path string, shares Shares) error {
 	if err != nil {
 		return err
 	}
-	_, err = cmdlib.RestartService("smbd")
-	return err
+	return restartService()
 }
 
 func saveSmbConf(shares Shares) error {
@@ -93,8 +116,7 @@ func remove(path string, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = cmdlib.RestartService("smbd")
-	return err
+	return restartService()
 }
 
 func removeSmbConf(name string) error {

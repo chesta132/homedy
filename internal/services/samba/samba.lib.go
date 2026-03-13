@@ -1,5 +1,10 @@
 package samba
 
+import (
+	"fmt"
+	"homedy/internal/libs/cmdlib"
+)
+
 func FilterShares(shares Shares) Shares {
 	result := make(Shares)
 	for k, v := range shares {
@@ -18,4 +23,13 @@ func isPathExist(shares Shares, share Share) bool {
 		}
 	}
 	return false
+}
+
+func restartService() error {
+	cmd, err := cmdlib.RestartService("smbd", "nmbd")
+	if err != nil {
+		out, _ := cmd.Output()
+		return fmt.Errorf("%w: %s", err, out)
+	}
+	return err
 }
