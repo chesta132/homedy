@@ -7,6 +7,30 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+func loadConfMap(path string) (map[string]map[string]string, error) {
+	cfg, err := ini.Load(path)
+	if err != nil {
+		return nil, err
+	}
+
+	cfgMap := make(map[string]map[string]string)
+	for _, section := range cfg.Sections() {
+		if section.Name() == "DEFAULT" {
+			continue
+		}
+		val := make(map[string]string)
+		for _, key := range section.Keys() {
+			val[key.Name()] = key.Value()
+		}
+		cfgMap[section.Name()] = val
+	}
+	return cfgMap, nil
+}
+
+func loadSmbConfMap() (map[string]map[string]string, error) {
+	return loadConfMap(config.SMB_CONF_PATH)
+}
+
 func loadConf(path string) (Shares, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
