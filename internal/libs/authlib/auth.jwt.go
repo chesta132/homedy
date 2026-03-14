@@ -10,13 +10,12 @@ import (
 
 type Claims struct {
 	UserID     string     `json:"user_id"`
-	Role       string     `json:"role"`
 	RotateAt   *time.Time `json:"rotate_at"`
 	RememberMe bool       `json:"remember_me"`
 	jwt.RegisteredClaims
 }
 
-func createClaim(id, role string, rememberMe bool, expiresAt time.Duration, rotateAt *time.Duration) *jwt.Token {
+func createClaim(id string, rememberMe bool, expiresAt time.Duration, rotateAt *time.Duration) *jwt.Token {
 	var rotate *time.Time
 
 	if rotateAt != nil {
@@ -34,7 +33,6 @@ func createClaim(id, role string, rememberMe bool, expiresAt time.Duration, rota
 
 	return jwt.NewWithClaims(config.SIGN_METHOD, Claims{
 		UserID:     id,
-		Role:       role,
 		RotateAt:   rotate,
 		RememberMe: rememberMe,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -54,14 +52,14 @@ func createKeyFunc(secret string) jwt.Keyfunc {
 	}
 }
 
-func CreateRefreshToken(id, role string, rememberMe bool) string {
-	token := createClaim(id, role, rememberMe, config.REFRESH_TOKEN_EXPIRY, &config.ROTATE_REFRESH_TOKEN_AFTER)
+func CreateRefreshToken(id string, rememberMe bool) string {
+	token := createClaim(id, rememberMe, config.REFRESH_TOKEN_EXPIRY, &config.ROTATE_REFRESH_TOKEN_AFTER)
 	str, _ := token.SignedString([]byte(config.REFRESH_SECRET))
 	return str
 }
 
-func CreateAccessToken(id, role string, rememberMe bool) string {
-	token := createClaim(id, role, rememberMe, config.ACCESS_TOKEN_EXPIRY, nil)
+func CreateAccessToken(id string, rememberMe bool) string {
+	token := createClaim(id, rememberMe, config.ACCESS_TOKEN_EXPIRY, nil)
 	str, _ := token.SignedString([]byte(config.ACCESS_SECRET))
 	return str
 }
