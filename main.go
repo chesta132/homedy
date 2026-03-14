@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	_, err := database.Connect()
+	db, err := database.Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -23,6 +23,7 @@ func main() {
 	{
 		routes.RegisterWebsocket(g.Group("/ws"))
 		routes.RegisterSamba(g.Group("/samba"))
+		routes.RegisterAuth(g.Group("/auth"), db)
 	}
 
 	g.Run()
