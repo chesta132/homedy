@@ -24,6 +24,8 @@ var translateErrorMap = map[string]translator{
 	"share_name":       shareName,
 	"abs_path":         absolutePath,
 	"file_permission":  filePerm,
+	"username":         username,
+	"password":         password,
 }
 
 func email(fieldName string, err validator.FieldError) string {
@@ -87,4 +89,14 @@ func absolutePath(fieldName string, err validator.FieldError) string {
 
 func filePerm(fieldName string, err validator.FieldError) string {
 	return fmt.Sprintf("%v is not a valid file permission", err.Value())
+}
+
+// models
+
+func username(fieldName string, err validator.FieldError) string {
+	return fmt.Sprintf("%s is not a valid username", err.Value())
+}
+
+func password(fieldName string, err validator.FieldError) string {
+	return fmt.Sprintf("%s is not a valid password", err.Value())
 }
