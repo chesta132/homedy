@@ -3,6 +3,9 @@ package main
 import (
 	"homedy/database"
 	_ "homedy/flags"
+	"log"
+	"os"
+	"time"
 
 	_ "homedy/config"
 
@@ -10,10 +13,24 @@ import (
 	_ "homedy/internal/services/samba"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
-	db, err := database.Connect()
+	gormLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  logger.Warn,
+			IgnoreRecordNotFoundError: true,
+			Colorful:                  true,
+		},
+	)
+
+	db, err := database.Connect(&gorm.Config{
+		Logger: gormLogger,
+	})
 	if err != nil {
 		panic(err)
 	}

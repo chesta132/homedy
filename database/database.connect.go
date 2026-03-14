@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Connect() (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(appDSN()))
+func Connect(opts ...gorm.Option) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(appDSN()), opts...)
 	if err != nil {
 		return nil, err
 	}
