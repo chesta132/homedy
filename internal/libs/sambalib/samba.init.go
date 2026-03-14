@@ -1,4 +1,4 @@
-package samba
+package sambalib
 
 import (
 	"homedy/config"

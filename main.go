@@ -1,16 +1,19 @@
 package main
 
 import (
-	"homedy/database"
 	_ "homedy/flags"
+
+	_ "homedy/config"
+
+	"homedy/database"
 	"log"
 	"os"
 	"time"
 
-	_ "homedy/config"
-
+	_ "homedy/internal/libs/sambalib"
+	_ "homedy/internal/libs/validatorlib"
+	"homedy/internal/repos"
 	"homedy/internal/routes"
-	_ "homedy/internal/services/samba"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -36,11 +39,12 @@ func main() {
 	}
 
 	g := gin.Default()
+	router := routes.New(db, repos.New(db))
 
 	{
-		routes.RegisterWebsocket(g.Group("/ws"))
-		routes.RegisterSamba(g.Group("/samba"))
-		routes.RegisterAuth(g.Group("/auth"), db)
+		router.RegisterWebsocket(g.Group("/ws"))
+		router.RegisterSamba(g.Group("/samba"))
+		router.RegisterAuth(g.Group("/auth"))
 	}
 
 	g.Run()

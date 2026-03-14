@@ -24,6 +24,11 @@ const (
 
 	REFRESH_TOKEN_KEY = "refresh_token"
 	ACCESS_TOKEN_KEY  = "access_token"
+
+	// query
+
+	MAX_CREATE_BATCH = 100 // max data per batch when inserting multiple records
+
 )
 
 var (

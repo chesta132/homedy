@@ -1,23 +1,26 @@
-package samba
+package sambalib
 
 import (
 	"homedy/config"
+	"homedy/internal/models"
 
 	"gopkg.in/ini.v1"
 )
 
-func loadConfMap(path string) (ShareMaps, error) {
+// models.ShareMaps
+
+func LoadConfMap(path string) (models.ShareMaps, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		return nil, err
 	}
 
-	cfgMap := make(ShareMaps)
+	cfgMap := make(models.ShareMaps)
 	for _, section := range cfg.Sections() {
 		if section.Name() == "DEFAULT" {
 			continue
 		}
-		val := make(ShareMap)
+		val := make(models.ShareMap)
 		for _, key := range section.Keys() {
 			val[key.Name()] = key.Value()
 		}
@@ -26,11 +29,11 @@ func loadConfMap(path string) (ShareMaps, error) {
 	return cfgMap, nil
 }
 
-func loadSmbConfMap() (ShareMaps, error) {
-	return loadConfMap(config.SMB_CONF_PATH)
+func LoadSmbConfMap() (models.ShareMaps, error) {
+	return LoadConfMap(config.SMB_CONF_PATH)
 }
 
-func saveMap(path string, maps ShareMaps) error {
+func SaveMap(path string, maps models.ShareMaps) error {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		cfg = ini.Empty()
@@ -51,22 +54,24 @@ func saveMap(path string, maps ShareMaps) error {
 	return restartService()
 }
 
-func saveSmbConfMap(maps ShareMaps) error {
-	return saveMap(config.SMB_CONF_PATH, maps)
+func SaveSmbConfMap(maps models.ShareMaps) error {
+	return SaveMap(config.SMB_CONF_PATH, maps)
 }
 
-func loadConf(path string) (Shares, error) {
+// models.Shares
+
+func LoadConf(path string) (models.Shares, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		return nil, err
 	}
 
-	shares := make(Shares)
+	shares := make(models.Shares)
 	for _, section := range cfg.Sections() {
 		if section.Name() == "DEFAULT" {
 			continue
 		}
-		var share Share
+		var share models.Share
 		if err := section.MapTo(&share); err != nil {
 			return nil, err
 		}
@@ -75,11 +80,11 @@ func loadConf(path string) (Shares, error) {
 	return shares, nil
 }
 
-func loadSmbConf() (Shares, error) {
-	return loadConf(config.SMB_CONF_PATH)
+func LoadSmbConf() (models.Shares, error) {
+	return LoadConf(config.SMB_CONF_PATH)
 }
 
-func save(path string, shares Shares) error {
+func Save(path string, shares models.Shares) error {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		cfg = ini.Empty()
@@ -100,11 +105,13 @@ func save(path string, shares Shares) error {
 	return restartService()
 }
 
-func saveSmbConf(shares Shares) error {
-	return save(config.SMB_CONF_PATH, shares)
+func SaveSmbConf(shares models.Shares) error {
+	return Save(config.SMB_CONF_PATH, shares)
 }
 
-func remove(path string, name string) error {
+// remove
+
+func Remove(path string, name string) error {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		cfg = ini.Empty()
@@ -119,6 +126,6 @@ func remove(path string, name string) error {
 	return restartService()
 }
 
-func removeSmbConf(name string) error {
-	return remove(config.SMB_CONF_PATH, name)
+func RemoveSmbConf(name string) error {
+	return Remove(config.SMB_CONF_PATH, name)
 }

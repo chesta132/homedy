@@ -1,0 +1,107 @@
+package repos
+
+import (
+	"context"
+	"homedy/config"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
+type create[T any] struct {
+	db *gorm.DB
+}
+
+type read[T any] struct {
+	db *gorm.DB
+}
+
+type update[T any] struct {
+	db *gorm.DB
+}
+
+type delete[T any] struct {
+	db *gorm.DB
+}
+
+// create
+
+func (r *create[T]) Create(ctx context.Context, data *T) error {
+	return gorm.G[T](r.db).Create(ctx, data)
+}
+
+func (r *create[T]) CreateAll(ctx context.Context, data *[]T) error {
+	return gorm.G[T](r.db).CreateInBatches(ctx, data, config.MAX_CREATE_BATCH)
+}
+
+// read
+
+func (r *read[T]) GetFirst(ctx context.Context, where any, args ...any) (T, error) {
+	return gorm.G[T](r.db).Where(where, args...).First(ctx)
+}
+
+func (r *read[T]) GetByID(ctx context.Context, id string) (T, error) {
+	return r.GetFirst(ctx, "id = ?", id)
+}
+
+func (r *read[T]) GetAll(ctx context.Context, where any, args ...any) ([]T, error) {
+	return gorm.G[T](r.db).Where(where, args...).Find(ctx)
+}
+
+func (r *read[T]) GetByIDs(ctx context.Context, ids []string) ([]T, error) {
+	return r.GetAll(ctx, "id IN ?", ids)
+}
+
+func (r *read[T]) GetFirstWithPreload(ctx context.Context, preloads []string, where any, args ...any) (T, error) {
+	q := gorm.G[T](r.db).Where(where, args...)
+	for _, p := range preloads {
+		q = q.Preload(p, nil)
+	}
+	return q.First(ctx)
+}
+
+func (r *read[T]) Count(ctx context.Context, where any, args ...any) (count int64, err error) {
+	err = r.db.Model(new(T)).WithContext(ctx).Where(where, args...).Count(&count).Error
+	return
+}
+
+func (r *read[T]) Exists(ctx context.Context, where any, args ...any) (bool, error) {
+	var count int64
+	err := r.db.Model(new(T)).WithContext(ctx).Where(where, args...).Limit(1).Count(&count).Error
+	return count > 0, err
+}
+
+// update
+
+func (r *update[T]) Update(ctx context.Context, u T, where any, args ...any) error {
+	_, err := gorm.G[T](r.db).Where(where, args...).Updates(ctx, u)
+	return err
+}
+
+func (r *update[T]) UpdateByID(ctx context.Context, id string, u T) error {
+	return r.Update(ctx, u, "id = ?", id)
+}
+
+func (r *update[T]) UpdateAndGet(ctx context.Context, u T, where any, args ...any) (result T, err error) {
+	err = r.db.WithContext(ctx).Model(new(T)).Clauses(clause.Returning{}).Where(where, args...).Updates(u).Scan(&result).Error
+	return
+}
+
+func (r *update[T]) UpdateByIDAndGet(ctx context.Context, id string, u T) (result T, err error) {
+	return r.UpdateAndGet(ctx, u, "id = ?", id)
+}
+
+// delete
+
+func (r *delete[T]) Delete(ctx context.Context, where any, args ...any) (rowsAffected int, err error) {
+	return gorm.G[T](r.db).Where(where, args...).Delete(ctx)
+}
+
+func (r *delete[T]) DeleteByID(ctx context.Context, id string) (success bool, err error) {
+	rowsAffected, err := r.Delete(ctx, "id = ?", id)
+	return rowsAffected > 0, err
+}
+
+func (r *delete[T]) DeleteByIDs(ctx context.Context, ids []string) (rowsAffected int, err error) {
+	return r.Delete(ctx, "id IN ?", ids)
+}

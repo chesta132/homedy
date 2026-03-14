@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/chesta132/goreply/reply"
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -120,15 +119,4 @@ func ValidateStructToReply(s any) *reply.ErrorPayload {
 		}
 	}
 	return nil
-}
-
-func BindJSONAndValidate[T any](c *gin.Context) (T, error) {
-	var toBind T
-	if err := c.ShouldBindJSON(&toBind); err != nil {
-		return toBind, err
-	}
-	if errPayload := ValidateStructToReply(toBind); errPayload != nil {
-		return toBind, errPayload
-	}
-	return toBind, nil
 }

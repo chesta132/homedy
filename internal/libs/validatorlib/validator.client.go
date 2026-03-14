@@ -1,7 +1,7 @@
 package validatorlib
 
 import (
-	"homedy/internal/services/samba"
+	"homedy/internal/models"
 	"reflect"
 	"slices"
 	"strings"
@@ -53,7 +53,7 @@ func init() {
 	}))
 
 	// register enum
-	Client.RegisterValidation("samba_bool", registEnumValidation(samba.Bools))
+	Client.RegisterValidation("samba_bool", registEnumValidation(models.SambaBools))
 
 	// register basic validator
 	Client.RegisterValidation("share_name", basicValidatorToValidatorFunc(ValidateShareName))

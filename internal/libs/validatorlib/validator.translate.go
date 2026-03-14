@@ -2,7 +2,7 @@ package validatorlib
 
 import (
 	"fmt"
-	"homedy/internal/services/samba"
+	"homedy/internal/models"
 	"reflect"
 	"strings"
 
@@ -20,7 +20,7 @@ var translateErrorMap = map[string]translator{
 	"required_if":      requiredIf,
 	"required_without": requiredWithout,
 	"uuid4":            uuid4,
-	"samba_bool":       createEnum(samba.Bools),
+	"samba_bool":       createEnum(models.SambaBools),
 	"share_name":       shareName,
 	"abs_path":         absolutePath,
 	"file_permission":  filePerm,

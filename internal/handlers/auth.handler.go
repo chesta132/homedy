@@ -3,24 +3,22 @@ package handlers
 import (
 	"homedy/internal/libs/replylib"
 	"homedy/internal/libs/validatorlib"
-	"homedy/internal/payloads"
-	"homedy/internal/services/auth"
+	"homedy/internal/models/payloads"
+	"homedy/internal/services"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type Auth struct {
-	db *gorm.DB
+	authSvc *services.Auth
 }
 
-func NewAuth(db *gorm.DB) *Auth {
-	return &Auth{db}
+func NewAuth(authSvc *services.Auth) *Auth {
+	return &Auth{authSvc}
 }
 
 func (h *Auth) SignUp(c *gin.Context) {
-	svc := auth.NewService(h.db, c.Request.Context())
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
 	payload, err := validatorlib.BindJSONAndValidate[payloads.RequestSignUp](c)
@@ -30,7 +28,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 	}
 
 	user := payload.ToUser()
-	err = svc.SignUp(&user, payload.RememberMe)
+	err = h.authSvc.AttachContext(c).SignUp(payload)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
