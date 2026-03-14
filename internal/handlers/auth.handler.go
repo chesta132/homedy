@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
-	"homedy/internal/libs/validatorlib"
 	"homedy/internal/models/payloads"
 	"homedy/internal/services"
 
@@ -21,7 +21,7 @@ func NewAuth(authSvc *services.Auth) *Auth {
 func (h *Auth) SignUp(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindJSONAndValidate[payloads.RequestSignUp](c)
+	payload, err := ginlib.BindJSONAndValidate[payloads.RequestSignUp](c)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return

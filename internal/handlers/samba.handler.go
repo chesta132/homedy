@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/libs/sambalib"
-	"homedy/internal/libs/validatorlib"
 	"homedy/internal/models"
 	"homedy/internal/models/payloads"
 	"homedy/internal/services"
@@ -23,7 +23,7 @@ func NewSamba(sambaSvc *services.Samba) *Samba {
 func (h *Samba) CreateShare(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindJSONAndValidate[payloads.RequestCreateShare](c)
+	payload, err := ginlib.BindJSONAndValidate[payloads.RequestCreateShare](c)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -51,7 +51,7 @@ func (h *Samba) GetShares(c *gin.Context) {
 func (h *Samba) GetShare(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindAndValidate[payloads.TemplateShareName](c.ShouldBindUri)
+	payload, err := ginlib.BindAndValidate[payloads.TemplateShareName](c.ShouldBindUri)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -75,7 +75,7 @@ func (h *Samba) GetShare(c *gin.Context) {
 func (h *Samba) UpdateShare(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindAndValidate[payloads.RequestUpdateShare](c.ShouldBindJSON, c.ShouldBindUri)
+	payload, err := ginlib.BindAndValidate[payloads.RequestUpdateShare](c.ShouldBindJSON, c.ShouldBindUri)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -92,7 +92,7 @@ func (h *Samba) UpdateShare(c *gin.Context) {
 func (h *Samba) DeleteShare(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindAndValidate[payloads.RequestDeleteShare](c.ShouldBindJSON, c.ShouldBindUri)
+	payload, err := ginlib.BindAndValidate[payloads.RequestDeleteShare](c.ShouldBindJSON, c.ShouldBindUri)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -122,7 +122,7 @@ func (h *Samba) GetConfig(c *gin.Context) {
 func (h *Samba) UpdateConfig(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := validatorlib.BindJSONAndValidate[models.ShareMap](c)
+	payload, err := ginlib.BindJSONAndValidate[models.ShareMap](c)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
