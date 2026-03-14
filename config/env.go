@@ -6,7 +6,7 @@ var (
 	GO_ENV      = os.Getenv("HOMEDY_ENV")
 	SERVER_PORT = os.Getenv("HOMEDY_PORT")
 
-	DB_HOST = os.Getenv("HOMEDY_DB_PATH")
+	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
 	DB_USER = os.Getenv("HOMEDY_DB_USER")
 	DB_PASS = os.Getenv("HOMEDY_DB_PASS")
@@ -20,7 +20,7 @@ func ReloadEnv() {
 	GO_ENV = os.Getenv("HOMEDY_ENV")
 	SERVER_PORT = os.Getenv("HOMEDY_PORT")
 
-	DB_HOST = os.Getenv("HOMEDY_DB_PATH")
+	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
 	DB_USER = os.Getenv("HOMEDY_DB_USER")
 	DB_PASS = os.Getenv("HOMEDY_DB_PASS")
