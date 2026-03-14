@@ -11,6 +11,7 @@ func ErrorPayloadToErrorArg(err reply.ErrorPayload) (string, string, reply.Error
 func HandleError(err error, rp *reply.Reply) {
 	if err, ok := err.(*reply.ErrorPayload); ok {
 		rp.Error(ErrorPayloadToErrorArg(*err)).FailJSON()
+		return
 	}
 	rp.Error(CodeServerError, err.Error()).FailJSON()
 }
