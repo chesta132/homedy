@@ -3,12 +3,14 @@ package services
 import (
 	"context"
 	"errors"
+	"homedy/config"
 	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/dblib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models"
 	"homedy/internal/models/payloads"
 	"homedy/internal/repos"
+	"net/http"
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
@@ -16,7 +18,8 @@ import (
 )
 
 type Auth struct {
-	userRepo *repos.User
+	userRepo   *repos.User
+	revokeRepo *repos.Revoke
 }
 
 type ContextedAuth struct {
@@ -25,20 +28,20 @@ type ContextedAuth struct {
 	ctx context.Context
 }
 
-func NewAuth(userRepo *repos.User) *Auth {
-	return &Auth{userRepo}
+func NewAuth(userRepo *repos.User, revokeRepo *repos.Revoke) *Auth {
+	return &Auth{userRepo, revokeRepo}
 }
 
 func (s *Auth) AttachContext(c *gin.Context) *ContextedAuth {
 	return &ContextedAuth{*s, c, c.Request.Context()}
 }
 
-func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, error) {
+func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, []http.Cookie, error) {
 	// validate email and username
 	email, username, err := s.userRepo.GetEmailOrUsername(s.ctx, payload.Email, payload.Password)
 	isErrNotFound := errors.Is(err, gorm.ErrRecordNotFound)
 	if err != nil && !isErrNotFound {
-		return nil, err
+		return nil, nil, err
 	}
 	if !isErrNotFound {
 		fe := make(reply.FieldsError)
@@ -48,7 +51,7 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, er
 		if username == payload.Username {
 			fe["username"] = "username already registered"
 		}
-		return nil, &reply.ErrorPayload{
+		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeConflict,
 			Message: "email or username already registered",
 			Fields:  fe,
@@ -58,17 +61,17 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, er
 	// create user (hash in before create)
 	newUser := payload.ToUser()
 	if err := s.userRepo.Create(s.ctx, &newUser); err != nil {
-		return nil, dblib.GormErrorToReplyError(err, &newUser)
+		return nil, nil, dblib.GormErrorToReplyError(err, &newUser)
 	}
 
-	return &newUser, nil
+	return &newUser, authlib.CreateTokenCookie(newUser.ID, payload.RememberMe), nil
 }
 
-func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, error) {
+func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, []http.Cookie, error) {
 	user, err := s.userRepo.GetFirst(s.ctx, "email = ? OR username = ?", payload.Identifier, payload.Identifier)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &reply.ErrorPayload{
+			return nil, nil, &reply.ErrorPayload{
 				Code:    replylib.CodeNotFound,
 				Message: "user not found",
 				Fields: reply.FieldsError{
@@ -76,11 +79,11 @@ func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, er
 				},
 			}
 		}
-		return nil, err
+		return nil, nil, err
 	}
 
 	if !authlib.ComparePassword(payload.Password, user.Password) {
-		return nil, &reply.ErrorPayload{
+		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeUnauthorized,
 			Message: "password is incorrect",
 			Fields: reply.FieldsError{
@@ -89,5 +92,11 @@ func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, er
 		}
 	}
 
-	return &user, nil
+	return &user, authlib.CreateTokenCookie(user.ID, payload.RememberMe), nil
+}
+
+func (s *ContextedAuth) SignOut() []http.Cookie {
+	refresh, _ := s.c.Cookie(config.REFRESH_TOKEN_KEY)
+	_ = s.revokeRepo.RevokeToken(s.ctx, refresh, "user already sign out")
+	return authlib.InvalidateTokenCookie()
 }

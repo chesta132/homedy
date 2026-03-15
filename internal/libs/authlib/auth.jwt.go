@@ -2,6 +2,7 @@ package authlib
 
 import (
 	"errors"
+	"fmt"
 	"homedy/config"
 	"time"
 
@@ -68,12 +69,12 @@ func ParseRefreshToken(str string) (claims Claims, err error) {
 	token, err := jwt.ParseWithClaims(str, &claims, createKeyFunc(config.REFRESH_SECRET))
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			err = errors.New("refresh token is expired")
+			err = fmt.Errorf("%w: refresh token", ErrTokenExpired)
 		}
 		return
 	}
 	if !token.Valid {
-		err = errors.New("invalid refresh token")
+		err = fmt.Errorf("%w: refresh token", ErrInvalidToken)
 	}
 	return
 }
@@ -82,12 +83,12 @@ func ParseAccessToken(str string) (claims Claims, err error) {
 	token, err := jwt.ParseWithClaims(str, &claims, createKeyFunc(config.ACCESS_SECRET))
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			err = errors.New("access token is expired")
+			err = fmt.Errorf("%w: access token", ErrTokenExpired)
 		}
 		return
 	}
 	if !token.Valid {
-		err = errors.New("invalid access token")
+		err = fmt.Errorf("%w: access token", ErrInvalidToken)
 	}
 	return
 }

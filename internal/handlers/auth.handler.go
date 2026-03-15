@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models/payloads"
@@ -28,13 +27,13 @@ func (h *Auth) SignUp(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authSvc.AttachContext(c).SignUp(payload)
+	user, cookies, err := h.authSvc.AttachContext(c).SignUp(payload)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
 	}
 
-	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).CreatedJSON()
+	rp.Success(user).SetCookies(cookies...).CreatedJSON()
 }
 
 func (h *Auth) SignIn(c *gin.Context) {
@@ -46,17 +45,17 @@ func (h *Auth) SignIn(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authSvc.AttachContext(c).SignIn(payload)
+	user, cookies, err := h.authSvc.AttachContext(c).SignIn(payload)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
 	}
 
-	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).OkJSON()
+	rp.Success(user).SetCookies(cookies...).OkJSON()
 }
 
 func (h *Auth) SignOut(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
-	// TODO: add revoke
-	rp.Success(nil).SetCookies(authlib.InvalidateTokenCookie()...).OkJSON()
+	cookies := h.authSvc.AttachContext(c).SignOut()
+	rp.Success(nil).SetCookies(cookies...).OkJSON()
 }

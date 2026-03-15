@@ -5,7 +5,6 @@ import (
 	"homedy/config"
 	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/replylib"
-	"homedy/internal/repos"
 	"net/http"
 	"time"
 
@@ -15,11 +14,10 @@ import (
 )
 
 type Auth struct {
-	userRepo *repos.User
 }
 
-func NewAuth(userRepo *repos.User) *Auth {
-	return &Auth{userRepo}
+func NewAuth() *Auth {
+	return &Auth{}
 }
 
 func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, err error) {

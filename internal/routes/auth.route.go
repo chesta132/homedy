@@ -8,7 +8,7 @@ import (
 )
 
 func (rt *Router) RegisterAuth(group *gin.RouterGroup) {
-	authSvc := services.NewAuth(rt.repos.User())
+	authSvc := services.NewAuth(rt.repos.User(), rt.repos.Revoke())
 	h := handlers.NewAuth(authSvc)
 
 	group.POST("/signup", h.SignUp)
