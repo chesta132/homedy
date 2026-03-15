@@ -13,4 +13,5 @@ func (rt *Router) RegisterAuth(group *gin.RouterGroup) {
 
 	group.POST("/signup", h.SignUp)
 	group.POST("/signin", h.SignIn)
+	group.POST("/signout", h.SignOut)
 }

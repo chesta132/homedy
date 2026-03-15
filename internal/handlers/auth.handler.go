@@ -54,3 +54,9 @@ func (h *Auth) SignIn(c *gin.Context) {
 
 	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).OkJSON()
 }
+
+func (h *Auth) SignOut(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	// TODO: add revoke
+	rp.Success(nil).SetCookies(authlib.InvalidateTokenCookie()...).OkJSON()
+}

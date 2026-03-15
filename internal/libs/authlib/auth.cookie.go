@@ -52,3 +52,7 @@ func CreateAccessCookie(id string, rememberMe bool) http.Cookie {
 func CreateTokenCookie(id string, rememberMe bool) []http.Cookie {
 	return []http.Cookie{CreateRefreshCookie(id, rememberMe), CreateAccessCookie(id, rememberMe)}
 }
+
+func InvalidateTokenCookie() []http.Cookie {
+	return []http.Cookie{Invalidate(config.ACCESS_TOKEN_KEY), Invalidate(config.REFRESH_TOKEN_KEY)}
+}
