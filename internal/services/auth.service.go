@@ -5,6 +5,7 @@ import (
 	"errors"
 	"homedy/internal/libs/dblib"
 	"homedy/internal/libs/replylib"
+	"homedy/internal/models"
 	"homedy/internal/models/payloads"
 	"homedy/internal/repos"
 
@@ -31,12 +32,12 @@ func (s *Auth) AttachContext(c *gin.Context) *ContextedAuth {
 	return &ContextedAuth{*s, c, c.Request.Context()}
 }
 
-func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) error {
+func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, error) {
 	// validate email and username
 	email, username, err := s.userRepo.GetEmailOrUsername(s.ctx, payload.Email, payload.Password)
 	isErrNotFound := errors.Is(err, gorm.ErrRecordNotFound)
 	if err != nil && !isErrNotFound {
-		return err
+		return nil, err
 	}
 	if !isErrNotFound {
 		fe := make(reply.FieldsError)
@@ -46,7 +47,7 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) error {
 		if username == payload.Username {
 			fe["username"] = "username already registered"
 		}
-		return &reply.ErrorPayload{
+		return nil, &reply.ErrorPayload{
 			Code:    replylib.CodeConflict,
 			Message: "email or username already registered",
 			Fields:  fe,
@@ -56,8 +57,8 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) error {
 	// create user (hash in before create)
 	newUser := payload.ToUser()
 	if err := s.userRepo.Create(s.ctx, &newUser); err != nil {
-		return dblib.GormErrorToReplyError(err, &newUser)
+		return nil, dblib.GormErrorToReplyError(err, &newUser)
 	}
 
-	return nil
+	return &newUser, nil
 }

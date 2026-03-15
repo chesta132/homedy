@@ -28,8 +28,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 		return
 	}
 
-	user := payload.ToUser()
-	err = h.authSvc.AttachContext(c).SignUp(payload)
+	user, err := h.authSvc.AttachContext(c).SignUp(payload)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
