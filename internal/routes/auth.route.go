@@ -12,4 +12,5 @@ func (rt *Router) RegisterAuth(group *gin.RouterGroup) {
 	h := handlers.NewAuth(authSvc)
 
 	group.POST("/signup", h.SignUp)
+	group.POST("/signin", h.SignIn)
 }

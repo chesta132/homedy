@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/dblib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models"
@@ -61,4 +62,32 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, er
 	}
 
 	return &newUser, nil
+}
+
+func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, error) {
+	user, err := s.userRepo.GetFirst(s.ctx, "email = ? OR username = ?", payload.Identifier, payload.Identifier)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &reply.ErrorPayload{
+				Code:    replylib.CodeNotFound,
+				Message: "user not found",
+				Fields: reply.FieldsError{
+					"identifier": "email or username not found",
+				},
+			}
+		}
+		return nil, err
+	}
+
+	if !authlib.ComparePassword(payload.Password, user.Password) {
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeUnauthorized,
+			Message: "password is incorrect",
+			Fields: reply.FieldsError{
+				"password": "password is incorrect",
+			},
+		}
+	}
+
+	return &user, nil
 }

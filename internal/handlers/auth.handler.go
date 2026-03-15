@@ -36,3 +36,21 @@ func (h *Auth) SignUp(c *gin.Context) {
 
 	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).CreatedJSON()
 }
+
+func (h *Auth) SignIn(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	payload, err := ginlib.BindJSONAndValidate[payloads.RequestSignIn](c)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	user, err := h.authSvc.AttachContext(c).SignIn(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).OkJSON()
+}
