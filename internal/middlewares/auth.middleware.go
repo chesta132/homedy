@@ -5,22 +5,26 @@ import (
 	"homedy/config"
 	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/replylib"
+	"homedy/internal/repos"
 	"net/http"
 	"time"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Auth struct {
+	revokedRepo *repos.Revoke
 }
 
-func NewAuth() *Auth {
-	return &Auth{}
+func NewAuth(revokedRepo *repos.Revoke) *Auth {
+	return &Auth{revokedRepo}
 }
 
 func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, err error) {
+	ctx := c.Request.Context()
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
 	accessCookie, err := c.Request.Cookie(config.ACCESS_TOKEN_KEY)
@@ -38,7 +42,15 @@ func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, err error) {
 		return
 	}
 
-	// TODO: check if token is revoked
+	// check if token is revoked
+	if revoked, revErr := mw.revokedRepo.GetFirst(ctx, "value = ?", refreshCookie.Value); !errors.Is(revErr, gorm.ErrRecordNotFound) {
+		if revErr != nil {
+			err = revErr
+			return
+		}
+		err = errors.New(revoked.Reason)
+		return
+	}
 
 	claims, err = authlib.ParseRefreshToken(refreshCookie.Value)
 	if err != nil {
