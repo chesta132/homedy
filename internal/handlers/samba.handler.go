@@ -92,7 +92,7 @@ func (h *Samba) UpdateShare(c *gin.Context) {
 func (h *Samba) DeleteShare(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := ginlib.BindAndValidate[payloads.RequestDeleteShare](c.ShouldBindJSON, c.ShouldBindUri)
+	payload, err := ginlib.BindAndValidate[payloads.RequestDeleteShare](c.ShouldBindUri)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
