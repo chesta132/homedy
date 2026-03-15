@@ -39,10 +39,22 @@ func SaveMap(path string, maps models.ShareMaps) error {
 		cfg = ini.Empty()
 	}
 	for name, share := range maps {
-		section, err := cfg.NewSection(name)
+		section, err := cfg.GetSection(name)
 		if err != nil {
-			return err
+			section, err = cfg.NewSection(name)
+			if err != nil {
+				return err
+			}
 		}
+
+		// remove key not in maps
+		for _, key := range section.Keys() {
+			if _, exists := share[key.Name()]; !exists {
+				section.DeleteKey(key.Name())
+			}
+		}
+
+		// update/add key from maps
 		for k, v := range share {
 			section.NewKey(k, v)
 		}
