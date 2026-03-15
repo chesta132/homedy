@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models/payloads"
@@ -34,5 +35,5 @@ func (h *Auth) SignUp(c *gin.Context) {
 		return
 	}
 
-	rp.Success(user).CreatedJSON()
+	rp.Success(user).SetCookies(authlib.CreateTokenCookie(user.ID, payload.RememberMe)...).CreatedJSON()
 }

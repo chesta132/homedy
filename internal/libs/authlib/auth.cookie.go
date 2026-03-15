@@ -49,6 +49,6 @@ func CreateAccessCookie(id string, rememberMe bool) http.Cookie {
 	return ToCookie(config.ACCESS_TOKEN_KEY, str, expires)
 }
 
-func CreateCookie(id string, rememberMe bool) []http.Cookie {
+func CreateTokenCookie(id string, rememberMe bool) []http.Cookie {
 	return []http.Cookie{CreateRefreshCookie(id, rememberMe), CreateAccessCookie(id, rememberMe)}
 }
