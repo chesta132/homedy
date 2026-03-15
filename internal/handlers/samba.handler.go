@@ -135,3 +135,27 @@ func (h *Samba) UpdateConfig(c *gin.Context) {
 	}
 	rp.Success(payload).OkJSON()
 }
+
+// backup
+
+func (h *Samba) Backup(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	err := h.sambaSvc.Backup()
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+	rp.Success(nil).OkJSON()
+}
+
+func (h *Samba) Restore(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	shares, err := h.sambaSvc.Restore()
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+	rp.Success(sambalib.FilterShares(shares)).OkJSON()
+}

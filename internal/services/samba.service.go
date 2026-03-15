@@ -162,3 +162,17 @@ func (s *Samba) UpdateConfig(update models.ShareMap) error {
 	shares["global"] = update
 	return sambalib.SaveSmbConfMap(shares)
 }
+
+// backup
+
+func (s *Samba) Backup() error {
+	return sambalib.Backup()
+}
+
+func (s *Samba) Restore() (models.Shares, error) {
+	err := sambalib.Restore()
+	if err != nil {
+		return nil, err
+	}
+	return sambalib.LoadSmbConf()
+}

@@ -2,6 +2,8 @@ package sambalib
 
 import (
 	"homedy/config"
+	"homedy/internal/libs/iolib"
+	"homedy/internal/libs/logger"
 	"homedy/internal/models"
 
 	"gopkg.in/ini.v1"
@@ -140,4 +142,18 @@ func Remove(path string, name string) error {
 
 func RemoveSmbConf(name string) error {
 	return Remove(config.SMB_CONF_PATH, name)
+}
+
+func Backup() error {
+	logger.Samba.Info("backup smb conf")
+	return iolib.CopyFile(config.SMB_CONF_PATH, config.SMB_CONF_BACKUP_PATH)
+}
+
+func Restore() error {
+	logger.Samba.Info("restore smb conf from backup")
+	err := iolib.CopyFile(config.SMB_CONF_BACKUP_PATH, config.SMB_CONF_PATH)
+	if err != nil {
+		return err
+	}
+	return restartService()
 }

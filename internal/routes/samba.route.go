@@ -17,6 +17,9 @@ func (rt *Router) RegisterSamba(group *gin.RouterGroup) {
 	group.PUT("/:name", h.UpdateShare)
 	group.DELETE("/:name", h.DeleteShare)
 
+	group.POST("/backup", h.Backup)
+	group.POST("/restore", h.Restore)
+
 	rt.registerSambaConfig(group.Group("/config"))
 }
 
