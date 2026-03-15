@@ -3,13 +3,14 @@ package main
 import (
 	_ "homedy/flags"
 
-	_ "homedy/config"
+	"homedy/config"
 
 	"homedy/database"
 	"log"
 	"os"
 	"time"
 
+	_ "homedy/internal/libs/ginlib"
 	_ "homedy/internal/libs/sambalib"
 	_ "homedy/internal/libs/validatorlib"
 	"homedy/internal/repos"
@@ -47,5 +48,5 @@ func main() {
 		router.RegisterAuth(g.Group("/auth"))
 	}
 
-	g.Run()
+	g.Run(":" + config.SERVER_PORT)
 }
