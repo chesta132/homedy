@@ -96,7 +96,7 @@ func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, []
 }
 
 func (s *ContextedAuth) SignOut() []http.Cookie {
-	refresh, _ := s.c.Cookie(config.REFRESH_TOKEN_KEY)
-	_ = s.revokeRepo.RevokeToken(s.ctx, refresh, "user already sign out")
+	refresh, _ := s.c.Request.Cookie(config.REFRESH_TOKEN_KEY)
+	_ = s.revokeRepo.RevokeToken(s.ctx, refresh.Value, "user already sign out")
 	return authlib.InvalidateTokenCookie()
 }
