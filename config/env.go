@@ -5,6 +5,7 @@ import "os"
 var (
 	GO_ENV      = os.Getenv("HOMEDY_ENV")
 	SERVER_PORT = os.Getenv("HOMEDY_PORT")
+	APP_SECRET  = os.Getenv("HOMEDY_SECRET")
 
 	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
@@ -19,6 +20,7 @@ var (
 func ReloadEnv() {
 	GO_ENV = os.Getenv("HOMEDY_ENV")
 	SERVER_PORT = os.Getenv("HOMEDY_PORT")
+	APP_SECRET = os.Getenv("HOMEDY_SECRET")
 
 	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
