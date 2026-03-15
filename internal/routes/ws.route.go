@@ -2,6 +2,7 @@ package routes
 
 import (
 	"homedy/internal/handlers"
+	"homedy/internal/middlewares"
 	"homedy/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 func (rt *Router) RegisterWebsocket(group *gin.RouterGroup) {
 	terminalSvc := services.NewTerminal()
 	h := handlers.NewWsTerminal(terminalSvc)
+	amw := middlewares.NewAuth(rt.repos.Revoke())
 
-	group.GET("/terminal", h.Handle)
+	group.GET("/terminal", amw.AppProtected(middlewares.AppProtectQuery()), h.Handle)
 }
