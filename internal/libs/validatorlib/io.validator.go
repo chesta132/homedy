@@ -8,12 +8,11 @@ import (
 var absPathRegex = regexp.MustCompile("^(/[^/ ]*)+/?$")
 
 func ValidateAbsPath(value any) bool {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-	if t.Kind() != reflect.String {
+	str, ok := validateStr(value)
+	if !ok {
 		return false
 	}
-	return absPathRegex.MatchString(v.String())
+	return absPathRegex.MatchString(str)
 }
 
 func ValidateFilePermission(value any) bool {

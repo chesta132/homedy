@@ -120,3 +120,12 @@ func ValidateStructToReply(s any) *reply.ErrorPayload {
 	}
 	return nil
 }
+
+func validateStr(value any) (string, bool) {
+	t := reflect.TypeOf(value)
+	v := reflect.ValueOf(value)
+	if t.Kind() != reflect.String {
+		return "", false
+	}
+	return v.String(), true
+}
