@@ -61,6 +61,4 @@ func init() {
 	Client.RegisterValidation("file_permission", basicValidatorToValidatorFunc(ValidateFilePermission))
 	Client.RegisterValidation("username", basicValidatorToValidatorFunc(ValidateUsername))
 	Client.RegisterValidation("password", basicValidatorToValidatorFunc(ValidatePassword))
-	Client.RegisterValidation("message_type", basicValidatorToValidatorFunc(ValidateMessageType))
-	Client.RegisterValidation("member_role", basicValidatorToValidatorFunc(ValidateMemberRole))
 }
