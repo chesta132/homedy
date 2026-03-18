@@ -1,7 +1,11 @@
 package main
 
 import (
+	"embed"
 	_ "homedy/flags"
+	"io/fs"
+	"net/http"
+	"strings"
 
 	"homedy/config"
 
@@ -20,6 +24,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+//go:embed ui/dist
+var frontendFiles embed.FS
 
 func main() {
 	gormLogger := logger.New(
@@ -40,13 +47,31 @@ func main() {
 	}
 
 	g := gin.Default()
+	api := g.Group("/api")
 	router := routes.New(db, repos.New(db))
 
 	{
-		router.RegisterWebsocket(g.Group("/ws"))
-		router.RegisterSamba(g.Group("/samba"))
-		router.RegisterAuth(g.Group("/auth"))
+		router.RegisterWebsocket(api.Group("/ws"))
+		router.RegisterSamba(api.Group("/samba"))
+		router.RegisterAuth(api.Group("/auth"))
 	}
+
+	dist, _ := fs.Sub(frontendFiles, "ui/dist")
+	fileServer := http.FileServer(http.FS(dist))
+
+	g.Use(func(c *gin.Context) {
+		if !strings.HasPrefix(c.Request.URL.Path, "/api") {
+			// Check if the requested file exists
+			_, err := fs.Stat(dist, strings.TrimPrefix(c.Request.URL.Path, "/"))
+			if os.IsNotExist(err) {
+				// If the file does not exist, serve index.html
+				c.Request.URL.Path = "/"
+			}
+
+			fileServer.ServeHTTP(c.Writer, c.Request)
+			c.Abort()
+		}
+	})
 
 	g.Run(":" + config.SERVER_PORT)
 }
