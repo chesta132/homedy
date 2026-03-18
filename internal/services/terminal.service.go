@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 
@@ -9,6 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
+
+type terminalResize struct {
+	X uint `json:"x"`
+	Y uint `json:"y"`
+}
+
+type terminalMessage struct {
+	Type   string         `json:"type"`
+	Resize terminalResize `json:"resize"`
+}
 
 type Terminal struct{}
 
@@ -50,6 +61,11 @@ func (s *Terminal) InputToPTY(ptmx *os.File, ws *websocket.Conn) {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
 			break
+		}
+		var actionMsg terminalMessage
+		if err := json.Unmarshal(msg, &actionMsg); err == nil {
+			pty.Setsize(ptmx, &pty.Winsize{X: uint16(actionMsg.Resize.X), Y: uint16(actionMsg.Resize.Y)})
+			continue
 		}
 		ptmx.Write(msg)
 	}
