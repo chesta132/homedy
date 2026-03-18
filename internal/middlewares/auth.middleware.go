@@ -31,6 +31,7 @@ func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, err error) {
 	if err == nil {
 		claims, err = authlib.ParseAccessToken(accessCookie.Value)
 		if err == nil {
+			c.Set("userID", claims.UserID)
 			return
 		}
 	}
