@@ -59,3 +59,13 @@ func (h *Auth) SignOut(c *gin.Context) {
 	cookies := h.authSvc.AttachContext(c).SignOut()
 	rp.Success(nil).SetCookies(cookies...).OkJSON()
 }
+
+func (h *Auth) Me(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	user, err := h.authSvc.AttachContext(c).Me()
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+	rp.Success(user).OkJSON()
+}

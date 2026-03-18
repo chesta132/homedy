@@ -100,3 +100,8 @@ func (s *ContextedAuth) SignOut() []http.Cookie {
 	_ = s.revokeRepo.RevokeToken(s.ctx, refresh.Value, "user already sign out")
 	return authlib.InvalidateTokenCookie()
 }
+
+func (s *ContextedAuth) Me() (models.User, error) {
+	userID, _ := s.c.Get("userID")
+	return s.userRepo.GetByID(s.ctx, userID.(string))
+}
