@@ -20,12 +20,14 @@ var translateErrorMap = map[string]translator{
 	"required_if":      requiredIf,
 	"required_without": requiredWithout,
 	"uuid4":            uuid4,
+	"len_equals":       lenEquals,
 	"samba_bool":       createEnum(models.SambaBools),
 	"share_name":       shareName,
 	"abs_path":         absolutePath,
 	"file_permission":  filePerm,
 	"username":         username,
 	"password":         password,
+	"convert_pair":     convertPair,
 }
 
 func email(fieldName string, err validator.FieldError) string {
@@ -69,6 +71,10 @@ func uuid4(fieldName string, err validator.FieldError) string {
 	return fmt.Sprintf("%s must be an uuid4", fieldName)
 }
 
+func lenEquals(fieldName string, err validator.FieldError) string {
+	return fmt.Sprintf("%s length must same as %s", fieldName, err.Param())
+}
+
 func createEnum[E ~string](enum []E) translator {
 	return func(fieldName string, err validator.FieldError) string {
 		return fmt.Sprintf("%v is not a valid enum of %s", err.Value(), enum)
@@ -99,4 +105,10 @@ func username(fieldName string, err validator.FieldError) string {
 
 func password(fieldName string, err validator.FieldError) string {
 	return fmt.Sprintf("%s is not a valid password", err.Value())
+}
+
+// converter
+
+func convertPair(_ string, err validator.FieldError) string {
+	return fmt.Sprintf("%s -> %s is not a valid pair", err.Value(), err.Param())
 }

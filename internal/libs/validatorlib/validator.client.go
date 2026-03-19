@@ -26,4 +26,6 @@ func init() {
 	Client.RegisterValidation("file_permission", basicValidatorToValidatorFunc(ValidateFilePermission))
 	Client.RegisterValidation("username", basicValidatorToValidatorFunc(ValidateUsername))
 	Client.RegisterValidation("password", basicValidatorToValidatorFunc(ValidatePassword))
+
+	registerValidatable(&payloads.RequestConvertMultiple{})
 }
