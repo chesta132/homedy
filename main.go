@@ -56,7 +56,7 @@ func main() {
 		router.RegisterAuth(api.Group("/auth"))
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
-		router.RegisterAuth(api.Group("/auth"))
+		router.RegisterConverter(api.Group("/convert"))
 	}
 
 	dist, _ := fs.Sub(frontendFiles, "ui/dist")
