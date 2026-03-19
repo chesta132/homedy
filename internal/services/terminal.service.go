@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"homedy/internal/libs/terminallib"
 	"os"
 	"os/exec"
+	"os/user"
 
 	"github.com/creack/pty"
 	"github.com/gin-gonic/gin"
@@ -37,9 +39,36 @@ func (s *Terminal) AttachContext(c *gin.Context) *ContextedTerminal {
 	return &ContextedTerminal{*s, c, c.Request.Context()}
 }
 
+func ensureUser(username string) error {
+	_, err := user.Lookup(username)
+	if err == nil {
+		return nil
+	}
+
+	cmd := exec.Command("useradd", "-m", username)
+	return cmd.Run()
+}
+
 func (s *Terminal) Spawn() (ptmx *os.File, cmd *exec.Cmd, err error) {
+	if err = ensureUser("homedy"); err != nil {
+		return
+	}
+	u, err := user.Lookup("homedy")
+	if err != nil {
+		return
+	}
+	userCred, err := terminallib.GetUserCredential(u)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	cmd = exec.Command("bash")
-	cmd.Env = append(os.Environ(), "TERM=xterm-color")
+	cmd.Env = append(os.Environ(),
+		"TERM=xterm-color",
+		"HOME="+u.HomeDir,
+		"USER="+u.Username)
+	cmd.SysProcAttr = userCred
+	cmd.Dir = u.HomeDir
 
 	ptmx, err = pty.Start(cmd)
 	return
