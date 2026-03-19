@@ -140,10 +140,13 @@ func basicValidatorToValidatorFunc(f func(any) bool) validator.Func {
 
 func registerValidatable(structs ...any) {
 	for _, s := range structs {
-		if v, ok := s.(Validatable); ok {
+		if _, ok := s.(Validatable); ok {
 			Client.RegisterStructValidation(func(sl validator.StructLevel) {
+				ptr := reflect.New(sl.Current().Type())
+				ptr.Elem().Set(sl.Current())
+				v := ptr.Interface().(Validatable)
 				v.ValidateStruct(sl)
-			})
+			}, s)
 		}
 	}
 }
