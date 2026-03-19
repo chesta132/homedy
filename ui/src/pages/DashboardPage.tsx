@@ -1,4 +1,4 @@
-import { FolderOpen, Terminal, Lock } from "lucide-react";
+import { FolderOpen, Terminal, Lock, FileOutput } from "lucide-react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,13 @@ const QUICK_LINKS = [
     desc: "Access system terminal over WebSocket",
     href: "/dashboard/terminal",
     icon: Terminal,
+    available: true,
+  },
+  {
+    name: "Converter",
+    desc: "Convert files between formats",
+    href: "/dashboard/converter",
+    icon: FileOutput,
     available: true,
   },
 ];

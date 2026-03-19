@@ -7,6 +7,7 @@ import { SignUpPage } from "@/pages/auth/SignUpPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { SMBPage } from "@/pages/SMBPage";
 import { TerminalPage } from "@/pages/TerminalPage";
+import { ConverterPage } from "@/pages/ConverterPage";
 import { Toaster } from "@/components/ui/toaster";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/dashboard/smb" element={<SMBPage />} />
               <Route path="/dashboard/terminal" element={<TerminalPage />} />
+              <Route path="/dashboard/converter" element={<ConverterPage />} />
             </Route>
           </Route>
 

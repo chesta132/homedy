@@ -9,7 +9,7 @@ export type ApiConfig<D = any> = AxiosRequestConfig<D>;
 /**
  * Thin HTTP client bound to a shared axios instance + a URL prefix.
  *
- * Sub-clients (auth, samba, sambaConfig) are plain instances of this class
+ * Sub-clients (auth, samba, sambaConfig, convert) are plain instances of this class
  * with a different prefix — they do NOT spawn their own sub-clients, so there
  * is no recursive construction and no stack overflow.
  */
@@ -21,6 +21,7 @@ class ApiClient {
   readonly auth!: ApiClient;
   readonly samba!: ApiClient;
   readonly sambaConfig!: ApiClient;
+  readonly convert!: ApiClient;
 
   constructor(instance: AxiosInstance, prefix = "") {
     this.instance = instance;
@@ -31,6 +32,7 @@ class ApiClient {
       (this as any).auth = new ApiClient(instance, "/auth");
       (this as any).samba = new ApiClient(instance, "/samba");
       (this as any).sambaConfig = new ApiClient(instance, "/samba/config");
+      (this as any).convert = new ApiClient(instance, "/convert");
     }
   }
 
@@ -63,6 +65,34 @@ class ApiClient {
 
   delete<T>(url: string, config?: ApiConfig) {
     return this.request<T>({ ...config, url, method: "DELETE" });
+  }
+
+  /**
+   * For file-download endpoints that return a Blob (not a JSON ApiResponse).
+   * Extracts filename from Content-Disposition header automatically.
+   */
+  async postBlob(
+    url: string,
+    data?: unknown,
+    config?: ApiConfig
+  ): Promise<{ blob: Blob; filename: string }> {
+    const res = await this.instance.request<Blob>({
+      ...config,
+      url: `${this.prefix}${url}`,
+      method: "POST",
+      data,
+      responseType: "blob",
+      // Let browser set Content-Type + boundary automatically for FormData.
+      // Explicitly unsetting overrides the instance-level application/json default.
+      headers: {
+        ...config?.headers,
+        ...(data instanceof FormData ? { "Content-Type": undefined } : {}),
+      },
+    });
+    const disposition: string = res.headers["content-disposition"] ?? "";
+    const match = disposition.match(/filename="?([^";\r\n]+)"?/);
+    const filename = match?.[1]?.trim() ?? "download";
+    return { blob: res.data, filename };
   }
 }
 

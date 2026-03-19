@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -29,11 +29,11 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "File Sharing", href: "/dashboard/smb", icon: FolderOpen },
-  { name: "Terminal", href: "/dashboard/terminal", icon: Terminal }, // no comingSoon — feature available
+  { name: "Terminal", href: "/dashboard/terminal", icon: Terminal },
+  { name: "Converter", href: "/dashboard/converter", icon: FileText },
   { name: "Chat", href: "#", icon: MessageSquare, comingSoon: true },
   { name: "DNS", href: "#", icon: Globe, comingSoon: true },
   { name: "Port Forward", href: "#", icon: ArrowRightLeft, comingSoon: true },
-  { name: "PDF Converter", href: "#", icon: FileText, comingSoon: true },
   { name: "Todo", href: "#", icon: CheckSquare, comingSoon: true },
   { name: "Notes", href: "#", icon: StickyNote, comingSoon: true },
   { name: "Finance", href: "#", icon: DollarSign, comingSoon: true },
@@ -56,8 +56,11 @@ function NavLinks({ onClose }: { onClose?: () => void }) {
             }}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-              isActive ? "bg-[#1c1c1c] text-white" : "text-[#888888] hover:bg-[#161616] hover:text-[#ededed]",
-              comingSoon && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[#888888]"
+              isActive
+                ? "bg-[#1c1c1c] text-white"
+                : "text-[#888888] hover:bg-[#161616] hover:text-[#ededed]",
+              comingSoon &&
+                "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[#888888]"
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
@@ -104,6 +107,24 @@ export function Sidebar() {
 /** Mobile slide-in sidebar triggered by hamburger */
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLElement>(null);
+
+  // Close on click outside the drawer
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    // Use capture so it fires before any child handlers
+    document.addEventListener("mousedown", handler, true);
+    return () => document.removeEventListener("mousedown", handler, true);
+  }, [open]);
+
+  // Close on route change (e.g. browser back/forward)
+  const { pathname } = useLocation();
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   return (
     <>
@@ -118,18 +139,18 @@ export function MobileSidebar() {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop — click handled by mousedown listener above */}
             <motion.div
               key="backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
               className="fixed inset-0 z-40 bg-black/60 lg:hidden"
             />
 
             {/* Drawer */}
             <motion.aside
+              ref={drawerRef}
               key="drawer"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -138,7 +159,11 @@ export function MobileSidebar() {
               className="fixed left-0 top-0 z-50 flex h-screen w-56 flex-col border-r border-[#1e1e1e] bg-[#0d0d0d] lg:hidden"
             >
               <div className="flex h-14 items-center justify-between border-b border-[#1e1e1e] px-4 shrink-0">
-                <Link to="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5"
+                >
                   <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
                     <span className="text-sm font-bold text-black">H</span>
                   </div>

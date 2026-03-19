@@ -80,14 +80,18 @@ src/
 │
 ├── services/
 │   ├── server/
-│   │   ├── ApiClient.ts            # Axios wrapper — api.auth, api.samba, api.sambaConfig
+│   │   ├── ApiClient.ts            # Axios wrapper — api.auth, api.samba, api.sambaConfig, api.convert
 │   │   ├── ServerSuccess.ts        # Wraps successful axios response
 │   │   └── ServerError.ts          # Wraps axios error response
 │   ├── form-validator/
 │   │   ├── FormValidator.ts        # Validates FormFields against VALIDATION_RULES
 │   │   └── rules.ts                # Per-field rules matching backend validators
-│   └── models/
-│       └── handleError.ts          # handleError(), handleFormError()
+│   ├── models/
+│   │   └── handleError.ts          # handleError(), handleFormError()
+│   └── converter/
+│       ├── converter.types.ts      # FileEntry interface
+│       ├── converter.pairs.ts      # CONVERT_PAIRS map, ACCEPTED_EXTS, getExt(), getTargets()
+│       └── converter.service.ts    # runSingle(), runBatch(), convertSingle(), convertMultiple()
 │
 ├── components/
 │   ├── AuthGuard.tsx               # Fetches /auth/me, shows spinner, redirects on fail
@@ -113,19 +117,24 @@ src/
 │   │   ├── DashboardLayout.tsx     # Fixed sidebar + topbar + <Outlet />
 │   │   ├── Sidebar.tsx             # Desktop fixed + mobile slide-in (framer-motion)
 │   │   └── Topbar.tsx              # User avatar menu — Profile (navigate) + Sign Out
-│   └── smb/
-│       ├── ShareForm.tsx           # Create/edit share modal — all backend Share fields
-│       ├── SharesTable.tsx         # Desktop table + mobile card list
-│       ├── DeleteShareDialog.tsx   # Confirmation dialog before delete
-│       └── SambaConfigEditor.tsx   # Global config editor — desktop inline / mobile stacked
+│   ├── smb/
+│   │   ├── ShareForm.tsx           # Create/edit share modal — all backend Share fields
+│   │   ├── SharesTable.tsx         # Desktop table + mobile card list
+│   │   ├── DeleteShareDialog.tsx   # Confirmation dialog before delete
+│   │   └── SambaConfigEditor.tsx   # Global config editor — desktop inline / mobile stacked
+│   └── converter/
+│       ├── ConvertSelect.tsx       # Custom dropdown for selecting target format
+│       ├── FileRow.tsx             # Desktop row (FileRow) + mobile card (FileMobileCard)
+│       └── UploadRow.tsx           # Desktop drag-drop row (UploadRow) + mobile button (UploadButton)
 │
 └── pages/
     ├── auth/
     │   ├── SignInPage.tsx          # identifier + password + remember_me
     │   └── SignUpPage.tsx          # username + email + password + remember_me
-    ├── DashboardPage.tsx           # Quick-access cards (SMB available, others locked)
+    ├── DashboardPage.tsx           # Quick-access cards — SMB, Terminal, Converter available
     ├── SMBPage.tsx                 # File Sharing — shares tab + config tab
-    └── TerminalPage.tsx            # xterm.js terminal over WebSocket
+    ├── TerminalPage.tsx            # xterm.js terminal over WebSocket
+    └── ConverterPage.tsx           # File converter — upload, select target format, single/batch download
 ```
 
 ---
@@ -135,13 +144,14 @@ src/
 All routes are in `src/App.tsx`:
 
 ```
-/signin                → SignInPage       (public)
-/signup                → SignUpPage       (public)
-/dashboard             → DashboardPage   (protected, inside DashboardLayout)
-/dashboard/smb         → SMBPage         (protected)
-/dashboard/terminal    → TerminalPage    (protected)
-/dashboard/profile     → not yet built   (navigate goes here from Topbar)
-*                      → redirect /signin
+/signin                  → SignInPage       (public)
+/signup                  → SignUpPage       (public)
+/dashboard               → DashboardPage   (protected, inside DashboardLayout)
+/dashboard/smb           → SMBPage         (protected)
+/dashboard/terminal      → TerminalPage    (protected)
+/dashboard/converter     → ConverterPage   (protected)
+/dashboard/profile       → not yet built   (navigate goes here from Topbar)
+*                        → redirect /signin
 ```
 
 **AuthGuard** (`components/AuthGuard.tsx`):
@@ -175,6 +185,10 @@ api.samba.post<Shares>("/restore", undefined, { params: { app_secret } });
 
 api.sambaConfig.get<ShareMap>("/", { params: { app_secret } });
 api.sambaConfig.put("/", body, { params: { app_secret } });
+
+// Converter — returns Blob, not JSON ApiResponse
+api.convert.postBlob("/single", formData); // → { blob, filename }
+api.convert.postBlob("/multiple", formData); // → { blob, filename } (zip)
 ```
 
 **Response shape** from backend:
@@ -185,6 +199,13 @@ api.sambaConfig.put("/", body, { params: { app_secret } });
 ```
 
 **Error handling**: if response code is in `AUTH_ERROR_CODES` (`UNAUTHORIZED`, `INVALID_AUTH`, `INVALID_TOKEN`), the interceptor redirects to `/signin` automatically.
+
+**`postBlob(url, data?, config?)`** — special method for file-download endpoints:
+
+- Sets `responseType: "blob"` automatically
+- When `data` is a `FormData`, unsets `Content-Type` header so browser sets `multipart/form-data` + boundary correctly (axios instance default is `application/json` which breaks multipart)
+- Extracts filename from `Content-Disposition` response header
+- Returns `{ blob: Blob, filename: string }`
 
 **Important — never construct `new ApiClient(baseURL)` inside a constructor.** The sub-client pattern uses a single shared axios instance passed by reference. New sub-clients are only created when `prefix === ""` (root client). See the comment in `ApiClient.ts`.
 
@@ -220,6 +241,29 @@ Auth uses **HTTP-only cookies** (access + refresh token). `withCredentials: true
 | PUT    | /config/ | Cookie + ?app_secret | ShareMap body             | ShareMap |
 
 **`app_secret`** is sent as a query param: `?app_secret=<value>`. The middleware (`AppProtected`) checks it against the server env var `APP_SECRET`. Frontend **never stores** the secret — `useAppSecret` prompts via modal every time.
+
+### Converter — `/convert/*`
+
+| Method | Path      | Auth?  | Body (multipart/form-data)                                | Response           |
+| ------ | --------- | ------ | --------------------------------------------------------- | ------------------ |
+| POST   | /single   | Cookie | `file: File`, `convert_to: string`                        | Binary file (Blob) |
+| POST   | /multiple | Cookie | `files: File[]`, `convert_to: string[]` (parallel arrays) | ZIP archive (Blob) |
+
+**Important**: both endpoints return raw binary (not JSON `ApiResponse`). Use `api.convert.postBlob()`, never `api.convert.post()`. The request **must** be `multipart/form-data` — do NOT send JSON.
+
+**Supported conversion pairs** (from `converter.pairs.go`, `pdf → xlsx` excluded by FE):
+
+| From   | To             |
+| ------ | -------------- |
+| `html` | `md`           |
+| `md`   | `html`         |
+| `pdf`  | `docx`, `pptx` |
+| `xlsx` | `pdf`, `csv`   |
+| `docx` | `pdf`          |
+| `pptx` | `pdf`          |
+| `csv`  | `xlsx`         |
+
+These are mirrored in `src/services/converter/converter.pairs.ts` as `CONVERT_PAIRS`.
 
 ### WebSocket Terminal — `/ws/terminal`
 
@@ -315,6 +359,76 @@ theme: XTERM_THEME  // monochrome, follows app palette
 
 ---
 
+## Converter Page
+
+`src/pages/ConverterPage.tsx` — thin orchestration only, all logic is in service/component modules.
+
+**State shape:**
+
+```ts
+interface FileEntry {
+  id: string; // unique key
+  file: File; // the actual File object
+  convertTo: string; // selected target extension, e.g. "pdf"
+  loading: boolean; // true while this specific file is being converted (Single mode)
+}
+```
+
+**Single mode** — `runSingle()` in `converter.service.ts`:
+
+- Loops over all entries sequentially
+- Per-file loading state via `setEntryLoading(id, bool)` callback
+- Each file downloads immediately when its conversion is done
+- Shows `toast.success` / `toast.error` per file
+
+**Batch mode** — `runBatch()` in `converter.service.ts`:
+
+- Sends all files in one `POST /api/convert/multiple` request
+- Downloads a single ZIP
+- Page-level `batchLoading` state (not per-file)
+
+**Layout:**
+
+- Desktop (`sm:` breakpoint): file rows + upload drop row at bottom, Batch|Single action bar below
+- Mobile: file cards (2-row layout) + full-width upload button, same action bar below
+
+**`ConvertSelect`** dropdown:
+
+- Options derived from `CONVERT_PAIRS[ext]` — only valid backend pairs shown
+- Custom dropdown (not Radix Select) — uses `onMouseDown preventDefault` to avoid blur-before-select race
+- Disabled state rendered as static placeholder when `options.length === 0` or `disabled=true`
+
+---
+
+## Sidebar
+
+`src/components/dashboard/Sidebar.tsx`
+
+**Desktop** (`lg:flex`): fixed left sidebar, always visible.
+
+**Mobile** (`MobileSidebar`): hamburger-triggered slide-in drawer with:
+
+- **Click outside to close**: `useRef` on drawer + `document.addEventListener("mousedown", handler, true)` (capture phase). Listener is registered only while drawer is open, cleaned up on close.
+- **Auto-close on route change**: `useEffect` watching `pathname` from `useLocation()` — covers browser back/forward navigation.
+- Framer Motion enter/exit animation (`x: "-100%" → 0`).
+
+**Active state**: `isActive = pathname === href` — highlights current route with `bg-[#1c1c1c] text-white`.
+
+**`NAV_ITEMS` order** (current):
+
+1. Dashboard
+2. File Sharing
+3. Terminal
+4. Converter
+5. Chat (comingSoon)
+6. DNS (comingSoon)
+7. Port Forward (comingSoon)
+8. Todo (comingSoon)
+9. Notes (comingSoon)
+10. Finance (comingSoon)
+
+---
+
 ## Key Patterns & Conventions
 
 ### Adding a new page
@@ -322,8 +436,15 @@ theme: XTERM_THEME  // monochrome, follows app palette
 1. Create `src/pages/NewPage.tsx`
 2. Add route in `src/App.tsx` inside the `<AuthGuard>` + `<DashboardLayout>` block
 3. Add nav item in `src/components/dashboard/Sidebar.tsx` → `NAV_ITEMS` array (set `comingSoon: true` to lock it)
+4. Add shortcut card in `src/pages/DashboardPage.tsx` → `QUICK_LINKS` array if the feature is available
 
-### Adding a new API endpoint
+### Adding a new API sub-client
+
+1. Add `readonly <name>!: ApiClient;` field declaration in `ApiClient` class
+2. In the constructor's `if (prefix === "")` block, add `(this as any).<name> = new ApiClient(instance, "/<prefix>");`
+3. If the endpoint returns a file/blob (not JSON), use `api.<name>.postBlob(url, formData)` — do NOT use `api.<name>.post()`
+
+### Adding a new API endpoint (JSON)
 
 - Add call via `api.<namespace>.<method>(url, ...)` directly in the component or a service file
 - If the endpoint needs `app_secret`: use `useAppSecret` hook, call `getSecret()` before the request, pass result as `{ params: { app_secret: secret } }`
@@ -368,7 +489,6 @@ Features shown in sidebar with "Soon" badge — no routes or pages exist yet:
 - Chat
 - DNS
 - Port Forward
-- PDF Converter
 - Todo
 - Notes
 - Finance
@@ -378,12 +498,16 @@ Features shown in sidebar with "Soon" badge — no routes or pages exist yet:
 
 ## Known Decisions / Non-obvious Choices
 
-| Decision                                     | Reason                                                                                                           |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `app_secret` never stored                    | Security requirement — user asked on every protected action                                                      |
-| `useAppSecret` uses Promise resolver pattern | Allows `await getSecret()` inline in async handlers without prop-drilling callbacks                              |
-| `modsRef` mirrors `mods` state in terminal   | Prevents stale closure in `sendKey` `useCallback` — refs always have latest value                                |
-| No resize JSON sent to old backend           | Backend now handles it (updated `InputToPTY`). Resize format: `{ type: "resize", resize: { x: cols, y: rows } }` |
-| Sub-clients don't recurse                    | `ApiClient` only builds sub-clients when `prefix === ""` — prevents infinite constructor recursion               |
-| `AuthGuard` state machine                    | `"checking"/"ok"/"fail"` instead of boolean — separates AbortError (normal unmount) from real auth failure       |
-| Config editor dual layout                    | Desktop: inline `key = value ×` row. Mobile (`sm:hidden`): stacked card with Key/Value labels                    |
+| Decision                                                | Reason                                                                                                           |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `app_secret` never stored                               | Security requirement — user asked on every protected action                                                      |
+| `useAppSecret` uses Promise resolver pattern            | Allows `await getSecret()` inline in async handlers without prop-drilling callbacks                              |
+| `modsRef` mirrors `mods` state in terminal              | Prevents stale closure in `sendKey` `useCallback` — refs always have latest value                                |
+| No resize JSON sent to old backend                      | Backend now handles it (updated `InputToPTY`). Resize format: `{ type: "resize", resize: { x: cols, y: rows } }` |
+| Sub-clients don't recurse                               | `ApiClient` only builds sub-clients when `prefix === ""` — prevents infinite constructor recursion               |
+| `AuthGuard` state machine                               | `"checking"/"ok"/"fail"` instead of boolean — separates AbortError (normal unmount) from real auth failure       |
+| Config editor dual layout                               | Desktop: inline `key = value ×` row. Mobile (`sm:hidden`): stacked card with Key/Value labels                    |
+| `postBlob` unsets `Content-Type` for `FormData`         | Axios instance default is `application/json`. Must be `undefined` for multipart so browser sets boundary         |
+| Converter pairs maintained in FE (`converter.pairs.ts`) | Single source of truth for valid pairs on FE — avoids round-trip validation request to backend                   |
+| `pdf → xlsx` disabled on FE                             | Product decision — excluded from `CONVERT_PAIRS` even though backend supports it                                 |
+| Mobile sidebar closes on `mousedown` (capture)          | `mousedown` fires before blur/click — avoids race where drawer closes after Link but before navigation fires     |
