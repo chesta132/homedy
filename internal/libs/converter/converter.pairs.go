@@ -9,7 +9,6 @@ type ConvertEntry struct {
 	Converter ConvertFunc
 }
 
-// ConvertPairs maps format asal ke slice of ConvertEntry.
 var ConvertPairs = map[string][]ConvertEntry{
 	"html": {
 		{To: "md", Converter: func(input []byte, _ string) ([]byte, error) { return HTMLToMarkdown(input) }},
@@ -18,7 +17,6 @@ var ConvertPairs = map[string][]ConvertEntry{
 		{To: "html", Converter: func(input []byte, _ string) ([]byte, error) { return MarkdownToHTML(input) }},
 	},
 	"pdf": {
-		{To: "xlsx", Converter: func(input []byte, filename string) ([]byte, error) { return PDFToXLSX(input, filename) }},
 		{To: "docx", Converter: func(input []byte, filename string) ([]byte, error) { return PDFToDocx(input, filename) }},
 		{To: "pptx", Converter: func(input []byte, filename string) ([]byte, error) { return PDFToPptx(input, filename) }},
 	},

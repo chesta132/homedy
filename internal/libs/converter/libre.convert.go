@@ -1,10 +1,5 @@
 package converter
 
-// PDFToXLSX converts a PDF file to XLSX using LibreOffice.
-func PDFToXLSX(inputData []byte, filename string) ([]byte, error) {
-	return libreofficeConvert(inputData, filename, "xlsx")
-}
-
 // XLSXToPDF converts an XLSX file to PDF using LibreOffice.
 func XLSXToPDF(inputData []byte, filename string) ([]byte, error) {
 	return libreofficeConvert(inputData, filename, "pdf")
