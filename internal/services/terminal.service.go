@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"homedy/config"
 	"homedy/internal/libs/terminallib"
 	"os"
 	"os/exec"
@@ -39,21 +40,11 @@ func (s *Terminal) AttachContext(c *gin.Context) *ContextedTerminal {
 	return &ContextedTerminal{*s, c, c.Request.Context()}
 }
 
-func ensureUser(username string) error {
-	_, err := user.Lookup(username)
-	if err == nil {
-		return nil
-	}
-
-	cmd := exec.Command("useradd", "-m", username)
-	return cmd.Run()
-}
-
 func (s *Terminal) Spawn() (ptmx *os.File, cmd *exec.Cmd, err error) {
-	if err = ensureUser("homedy"); err != nil {
+	if err = terminallib.EnsureUser(config.TERMINAL_USER); err != nil {
 		return
 	}
-	u, err := user.Lookup("homedy")
+	u, err := user.Lookup(config.TERMINAL_USER)
 	if err != nil {
 		return
 	}
@@ -63,6 +54,9 @@ func (s *Terminal) Spawn() (ptmx *os.File, cmd *exec.Cmd, err error) {
 	}
 
 	cmd = exec.Command("bash")
+	if config.TERMINAL_RESTRICTED {
+		cmd = exec.Command("rbash")
+	}
 	cmd.Env = append(os.Environ(),
 		"TERM=xterm-color",
 		"HOME="+u.HomeDir,

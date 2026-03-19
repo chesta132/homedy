@@ -15,6 +15,8 @@ var (
 
 	REFRESH_SECRET = os.Getenv("HOMEDY_REFRESH_SECRET")
 	ACCESS_SECRET  = os.Getenv("HOMEDY_ACCESS_SECRET")
+
+	TERMINAL_USER = os.Getenv("HOMEDY_TERMINAL_USER")
 )
 
 func ReloadEnv() {
@@ -30,4 +32,6 @@ func ReloadEnv() {
 
 	REFRESH_SECRET = os.Getenv("HOMEDY_REFRESH_SECRET")
 	ACCESS_SECRET = os.Getenv("HOMEDY_ACCESS_SECRET")
+
+	TERMINAL_USER = os.Getenv("HOMEDY_TERMINAL_USER")
 }
