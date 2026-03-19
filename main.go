@@ -17,6 +17,7 @@ import (
 	_ "homedy/internal/libs/ginlib"
 	_ "homedy/internal/libs/sambalib"
 	_ "homedy/internal/libs/validatorlib"
+	"homedy/internal/middlewares"
 	"homedy/internal/repos"
 	"homedy/internal/routes"
 
@@ -48,9 +49,11 @@ func main() {
 
 	g := gin.Default()
 	api := g.Group("/api")
-	router := routes.New(db, repos.New(db))
+	api.Use(middlewares.LimitTotalUploadSize(config.LIMIT_UPLOAD_SIZE))
 
 	{
+		router := routes.New(db, repos.New(db))
+		router.RegisterAuth(api.Group("/auth"))
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterAuth(api.Group("/auth"))

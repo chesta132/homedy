@@ -2,6 +2,7 @@ package payloads
 
 import (
 	"fmt"
+	"homedy/config"
 	"homedy/internal/libs/converter"
 	"mime/multipart"
 	"path/filepath"
@@ -21,6 +22,7 @@ func (p *RequestConvertMultiple) ValidateStruct(sl validator.StructLevel) {
 	}
 
 	for i, file := range p.Files {
+		// convert pairs validation
 		convertTo := p.ConvertTo[i]
 		ext := filepath.Ext(file.Filename)
 		if len(ext) < 1 {
@@ -31,6 +33,11 @@ func (p *RequestConvertMultiple) ValidateStruct(sl validator.StructLevel) {
 		ext = ext[1:]
 		if !converter.IsValidPair(ext, convertTo) {
 			sl.ReportError(ext, fmt.Sprintf("files[%d]", i), "Files", "convert_pair", convertTo)
+		}
+
+		// size validation
+		if limit, ok := config.ConvertFileLimits[ext]; ok && file.Size > limit {
+			sl.ReportError(file.Filename, fmt.Sprintf("files[%d]", i), "Files", "size_limit", fmt.Sprint(limit))
 		}
 	}
 }

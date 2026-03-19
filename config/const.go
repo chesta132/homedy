@@ -32,6 +32,10 @@ const (
 	// terminal remote
 
 	TERMINAL_RESTRICTED bool = false
+
+	// uploads
+
+	LIMIT_UPLOAD_SIZE = 200 << 20 // 200MB per request
 )
 
 var (
@@ -41,4 +45,16 @@ var (
 	REFRESH_TOKEN_EXPIRY       time.Duration     = (time.Hour * 24 * 7 * 2) + (time.Hour * 24 * 3) // 2 weeks 3 days
 	ACCESS_TOKEN_EXPIRY        time.Duration     = time.Minute * 5                                 // 5 minutes
 	ROTATE_REFRESH_TOKEN_AFTER time.Duration     = time.Hour * 24 * 7 * 2                          // 2 weeks
+
+	// convert
+
+	ConvertFileLimits = map[string]int64{
+		"html": 2 << 20,  // 2MB
+		"md":   2 << 20,  // 2MB
+		"csv":  5 << 20,  // 5MB
+		"xlsx": 10 << 20, // 10Mb
+		"docx": 10 << 20, // 10MB
+		"pptx": 10 << 20, // 10MB
+		"pdf":  15 << 20, // 15MB
+	}
 )

@@ -28,6 +28,7 @@ var translateErrorMap = map[string]translator{
 	"username":         username,
 	"password":         password,
 	"convert_pair":     convertPair,
+	"size_limit":       SizeLimit,
 }
 
 func email(fieldName string, err validator.FieldError) string {
@@ -111,4 +112,8 @@ func password(fieldName string, err validator.FieldError) string {
 
 func convertPair(_ string, err validator.FieldError) string {
 	return fmt.Sprintf("%s -> %s is not a valid pair", err.Value(), err.Param())
+}
+
+func SizeLimit(fieldName string, err validator.FieldError) string {
+	return fmt.Sprintf("%s reach size limit (%s)", err.Value(), err.Param())
 }
