@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { HomedyLogo } from "../ui/logo";
 
 type NavItem = {
   name: string;
@@ -82,9 +83,7 @@ function SidebarLogo() {
   return (
     <div className="flex h-14 items-center border-b border-[#1e1e1e] px-4 shrink-0">
       <Link to="/dashboard" className="flex items-center gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
-          <span className="text-sm font-bold text-black">H</span>
-        </div>
+        <HomedyLogo />
         <span className="text-sm font-semibold text-[#ededed]">Homedy</span>
       </Link>
     </div>
@@ -159,20 +158,11 @@ export function MobileSidebar() {
               className="fixed left-0 top-0 z-50 flex h-screen w-56 flex-col border-r border-[#1e1e1e] bg-[#0d0d0d] lg:hidden"
             >
               <div className="flex h-14 items-center justify-between border-b border-[#1e1e1e] px-4 shrink-0">
-                <Link
-                  to="/dashboard"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5"
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
-                    <span className="text-sm font-bold text-black">H</span>
-                  </div>
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
+                  <HomedyLogo />
                   <span className="text-sm font-semibold text-[#ededed]">Homedy</span>
                 </Link>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="text-[#555555] hover:text-[#ededed] transition-colors"
-                >
+                <button onClick={() => setOpen(false)} className="text-[#555555] hover:text-[#ededed] transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>

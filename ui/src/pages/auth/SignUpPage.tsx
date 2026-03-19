@@ -11,6 +11,7 @@ import { handleFormError } from "@/services/models/handleError";
 import api from "@/services/server/ApiClient";
 import { useAuth } from "@/contexts/AuthContext";
 import type { User } from "@/types/models";
+import { HomedyLogo } from "@/components/ui/logo";
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -18,10 +19,11 @@ export function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { form: [form, setForm], error: [errors, setErrors], validate } = useForm(
-    { username: "", email: "", password: "", rememberMe: false as boolean },
-    { username: true, email: true, password: true }
-  );
+  const {
+    form: [form, setForm],
+    error: [errors, setErrors],
+    validate,
+  } = useForm({ username: "", email: "", password: "", rememberMe: false as boolean }, { username: true, email: true, password: true });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,17 +47,10 @@ export function SignUpPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-sm"
-      >
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white">
-            <span className="text-xl font-bold text-black">H</span>
-          </div>
+          <HomedyLogo size="48" />
           <h1 className="text-2xl font-semibold text-[#ededed]">Create an account</h1>
           <p className="mt-1.5 text-sm text-[#666666]">Get started with Homedy</p>
         </div>
@@ -109,17 +104,11 @@ export function SignUpPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-xs text-[#444444]">
-              8–32 chars, must include uppercase, lowercase, and a digit
-            </p>
+            <p className="text-xs text-[#444444]">8–32 chars, must include uppercase, lowercase, and a digit</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Checkbox
-              id="rememberMe"
-              checked={form.rememberMe ?? false}
-              onCheckedChange={(v) => setForm((prev) => ({ ...prev, rememberMe: !!v }))}
-            />
+            <Checkbox id="rememberMe" checked={form.rememberMe ?? false} onCheckedChange={(v) => setForm((prev) => ({ ...prev, rememberMe: !!v }))} />
             <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
               Remember me
             </Label>
