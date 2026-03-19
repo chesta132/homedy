@@ -12,4 +12,5 @@ func (rt *Router) RegisterConverter(group *gin.RouterGroup) {
 	h := handlers.NewConverter(convSvc)
 
 	group.POST("/multiple", h.ConvertMultiple)
+	group.POST("/single", h.ConvertOne)
 }

@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"homedy/internal/libs/converter"
 	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models/payloads"
 	"homedy/internal/services"
+	"net/http"
+	"path/filepath"
 	"time"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
@@ -44,4 +47,31 @@ func (h *Converter) ConvertMultiple(c *gin.Context) {
 		replylib.HandleError(err, rp)
 		return
 	}
+}
+
+func (h *Converter) ConvertOne(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	svc := h.convSvc.AttachContext(c)
+
+	payload, err := ginlib.BindAndValidate[payloads.RequestConvertOne](c.ShouldBind)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	fileName, fileBytes, err := svc.ConvertOne(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	ext := filepath.Ext(fileName)[1:]
+	contentType, ok := converter.MimePairs[ext]
+	if !ok {
+		contentType = http.DetectContentType(fileBytes)
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	// not using rp due to contentType supports
+	c.Data(http.StatusOK, contentType, fileBytes)
 }

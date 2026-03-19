@@ -27,5 +27,5 @@ func init() {
 	Client.RegisterValidation("username", basicValidatorToValidatorFunc(ValidateUsername))
 	Client.RegisterValidation("password", basicValidatorToValidatorFunc(ValidatePassword))
 
-	registerValidatable(&payloads.RequestConvertMultiple{})
+	registerValidatable(&payloads.RequestConvertMultiple{}, &payloads.RequestConvertOne{})
 }

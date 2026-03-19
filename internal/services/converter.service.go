@@ -8,6 +8,7 @@ import (
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models/payloads"
 	"io"
+	"mime/multipart"
 	"path/filepath"
 	"strings"
 
@@ -31,34 +32,42 @@ func (s *Converter) AttachContext(c *gin.Context) *ContextedConverter {
 	return &ContextedConverter{*s, c, c.Request.Context()}
 }
 
+func (s *Converter) convert(file *multipart.FileHeader, convertTo string) (fileName string, fileBytes []byte, err error) {
+	// slice ext is safe cz already validated
+	ext := filepath.Ext(file.Filename)[1:]
+	conv, err := converter.GetConverter(ext, convertTo)
+	if err != nil {
+		return "", nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
+	}
+	f, err := file.Open()
+	if err != nil {
+		return "", nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, f); err != nil {
+		f.Close()
+		return "", nil, err
+	}
+	f.Close()
+
+	converted, err := conv(buf.Bytes(), file.Filename)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return strings.TrimSuffix(file.Filename, ext) + convertTo, converted, nil
+}
+
 func (s *ContextedConverter) ConvertMultiple(payload payloads.RequestConvertMultiple) (map[string][]byte, error) {
 	converted := make(map[string][]byte)
 
 	for i, file := range payload.Files {
-		convertTo := payload.ConvertTo[i]
-		// slice ext is safe cz already validated
-		ext := filepath.Ext(file.Filename)[1:]
-		conv, err := converter.GetConverter(ext, convertTo)
-		if err != nil {
-			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
-		}
-		f, err := file.Open()
-		if err != nil {
-			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
-		}
-
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, f); err != nil {
-			f.Close()
-			return nil, err
-		}
-		f.Close()
-
-		fileConverted, err := conv(buf.Bytes(), file.Filename)
+		fileName, fileBytes, err := s.convert(file, payload.ConvertTo[i])
 		if err != nil {
 			return nil, err
 		}
-		converted[strings.TrimSuffix(file.Filename, ext) + convertTo] = fileConverted
+		converted[fileName] = fileBytes
 	}
 	return converted, nil
 }
@@ -75,4 +84,8 @@ func (s *Converter) StreamMultipleToZip(w io.Writer, multiple map[string][]byte)
 		writer.Write(file)
 	}
 	return nil
+}
+
+func (s *ContextedConverter) ConvertOne(payload payloads.RequestConvertOne) (fileName string, fileBytes []byte, err error) {
+	return s.convert(payload.File, payload.ConvertTo)
 }

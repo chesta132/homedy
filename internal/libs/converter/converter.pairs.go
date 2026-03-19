@@ -37,6 +37,17 @@ var ConvertPairs = map[string][]ConvertEntry{
 	},
 }
 
+// ext = mime
+var MimePairs = map[string]string{
+	"pdf":  "application/pdf",
+	"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	"pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	"html": "text/html",
+	"md":   "text/markdown",
+	"csv":  "text/csv",
+}
+
 func IsValidPair(from, to string) bool {
 	entries, ok := ConvertPairs[from]
 	if !ok {
