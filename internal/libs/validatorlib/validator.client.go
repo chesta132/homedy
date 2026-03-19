@@ -2,47 +2,12 @@ package validatorlib
 
 import (
 	"homedy/internal/models"
-	"reflect"
-	"slices"
-	"strings"
+	"homedy/internal/models/payloads"
 
 	"github.com/go-playground/validator/v10"
 )
 
 var Client = validator.New(validator.WithRequiredStructEnabled())
-
-func registFirstTag(tags map[string]string) validator.TagNameFunc {
-	return func(fld reflect.StructField) string {
-		for tag, splitter := range tags {
-			name, _, _ := strings.Cut(fld.Tag.Get(tag), splitter)
-			if name != "-" && name != "" {
-				return name
-			}
-		}
-		return ""
-	}
-}
-
-func registEnumValidation[E ~string](enum []E) validator.Func {
-	return func(fl validator.FieldLevel) bool {
-		if fl.Field().Kind() != reflect.String {
-			return false
-		}
-
-		value := fl.Field().String()
-		if !slices.Contains(enum, E(value)) {
-			return false
-		}
-
-		return true
-	}
-}
-
-func basicValidatorToValidatorFunc(f func(any) bool) validator.Func {
-	return func(fl validator.FieldLevel) bool {
-		return f(fl.Field().Interface())
-	}
-}
 
 func init() {
 	// register tags
