@@ -50,10 +50,13 @@ func main() {
 	g := gin.Default()
 	api := g.Group("/api")
 	api.Use(middlewares.LimitTotalUploadSize(config.LIMIT_UPLOAD_SIZE))
+	amw := middlewares.NewAuth(repos.NewRevoke(db))
 
 	{
 		router := routes.New(db, repos.New(db))
 		router.RegisterAuth(api.Group("/auth"))
+
+		api.Use(amw.Protected())
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterConverter(api.Group("/convert"))
