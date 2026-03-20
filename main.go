@@ -3,9 +3,6 @@ package main
 import (
 	"embed"
 	_ "homedy/flags"
-	"io/fs"
-	"net/http"
-	"strings"
 
 	"homedy/config"
 
@@ -53,31 +50,16 @@ func main() {
 	amw := middlewares.NewAuth(repos.NewRevoke(db))
 
 	{
-		router := routes.New(db, repos.New(db))
+		router := routes.New(g, db, repos.New(db))
 		router.RegisterAuth(api.Group("/auth"))
 
 		api.Use(amw.Protected())
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterConverter(api.Group("/convert"))
+
+		router.RegisterFrontend(frontendFiles, "ui/dist")
 	}
-
-	dist, _ := fs.Sub(frontendFiles, "ui/dist")
-	fileServer := http.FileServer(http.FS(dist))
-
-	g.Use(func(c *gin.Context) {
-		if !strings.HasPrefix(c.Request.URL.Path, "/api") {
-			// Check if the requested file exists
-			_, err := fs.Stat(dist, strings.TrimPrefix(c.Request.URL.Path, "/"))
-			if os.IsNotExist(err) {
-				// If the file does not exist, serve index.html
-				c.Request.URL.Path = "/"
-			}
-
-			fileServer.ServeHTTP(c.Writer, c.Request)
-			c.Abort()
-		}
-	})
 
 	g.Run(":" + config.SERVER_PORT)
 }
