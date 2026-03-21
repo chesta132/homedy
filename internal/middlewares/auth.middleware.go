@@ -104,19 +104,23 @@ func (mw *Auth) Protected() gin.HandlerFunc {
 
 type secretGetter func(c *gin.Context) string
 
-func AppProtectQuery() (secretGetter, string) {
-	return func(c *gin.Context) string { return c.Query("app_secret") }, "app_secret"
+func AppProtectQuery() secretGetter {
+	return func(c *gin.Context) string { return c.Query("app_secret") }
+}
+
+func SecretGetterHeader() secretGetter {
+	return func(c *gin.Context) string { return c.GetHeader("X-APP-SECRET") }
 }
 
 // App protect middleware compare [app_secret] in payload with [config.APP_SECRET]
-func (mw *Auth) AppProtected(secretGetter secretGetter, secretField string) gin.HandlerFunc {
+func (mw *Auth) AppProtected(secretGetter secretGetter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rp := replylib.Client.Use(adapter.AdaptGin(c))
 
 		secret := secretGetter(c)
 		if secret != config.APP_SECRET {
 			rp.Error(replylib.CodeForbidden, "invalid app secret", reply.WithFields(reply.FieldsError{
-				secretField: "invalid app secret",
+				"app_secret": "invalid app secret",
 			})).FailJSON()
 			c.Abort()
 			return

@@ -19,7 +19,7 @@ func (rt *Router) RegisterSamba(group *gin.RouterGroup) {
 	group.PUT("/:name", h.UpdateShare)
 	group.DELETE("/:name", h.DeleteShare)
 
-	group.Use(amw.AppProtected(middlewares.AppProtectQuery()))
+	group.Use(amw.AppProtected(middlewares.SecretGetterHeader()))
 
 	group.POST("/backup", h.Backup)
 	group.POST("/restore", h.Restore)
@@ -32,7 +32,7 @@ func (rt *Router) registerSambaConfig(group *gin.RouterGroup) {
 	h := handlers.NewSamba(sambaSvc)
 	amw := middlewares.NewAuth(rt.repos.Revoke())
 
-	group.Use(amw.AppProtected(middlewares.AppProtectQuery()))
+	group.Use(amw.AppProtected(middlewares.SecretGetterHeader()))
 
 	group.GET("/", h.GetConfig)
 	group.PUT("/", h.UpdateConfig)
