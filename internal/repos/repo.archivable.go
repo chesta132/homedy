@@ -27,7 +27,8 @@ func (r *archivable[T]) Restore(ctx context.Context, where any, args ...any) (er
 }
 
 func (r *archivable[T]) Delete(ctx context.Context, where any, args ...any) (rowsAffected int, err error) {
-	return gorm.G[T](r.db.Unscoped()).Where(where, args...).Delete(ctx)
+	result := r.db.Unscoped().Where(where, args...).Delete(new(T))
+	return int(result.RowsAffected), result.Error
 }
 
 func (r *archivable[T]) DeleteByID(ctx context.Context, id string) (success bool, err error) {
