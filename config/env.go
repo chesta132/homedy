@@ -17,6 +17,11 @@ var (
 	ACCESS_SECRET  = os.Getenv("HOMEDY_ACCESS_SECRET")
 
 	TERMINAL_USER = os.Getenv("HOMEDY_TERMINAL_USER")
+
+	MAIL_HOST  = os.Getenv("HOMEDY_MAIL_HOST")
+	MAIL_USER  = os.Getenv("HOMEDY_MAIL_USER")
+	MAIL_PASS  = os.Getenv("HOMEDY_MAIL_PASS")
+	MAIL_OWNER = os.Getenv("HOMEDY_MAIL_OWNER")
 )
 
 func ReloadEnv() {
@@ -34,4 +39,9 @@ func ReloadEnv() {
 	ACCESS_SECRET = os.Getenv("HOMEDY_ACCESS_SECRET")
 
 	TERMINAL_USER = os.Getenv("HOMEDY_TERMINAL_USER")
+
+	MAIL_HOST = os.Getenv("HOMEDY_MAIL_HOST")
+	MAIL_USER = os.Getenv("HOMEDY_MAIL_USER")
+	MAIL_PASS = os.Getenv("HOMEDY_MAIL_PASS")
+	MAIL_OWNER = os.Getenv("HOMEDY_MAIL_OWNER")
 }
