@@ -1,14 +1,10 @@
 package handlers
 
 import (
-	"fmt"
-	"homedy/config"
 	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models/payloads"
 	"homedy/internal/services"
-	"net/http"
-	"net/url"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
 	"github.com/gin-gonic/gin"
@@ -43,7 +39,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 func (h *Auth) SignUpApproval(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := ginlib.BindAndValidate[payloads.RequestSignUpApproval](c.ShouldBindQuery)
+	payload, err := ginlib.BindAndValidate[payloads.RequestSignUpApproval](c.ShouldBindBodyWithJSON)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -55,10 +51,7 @@ func (h *Auth) SignUpApproval(c *gin.Context) {
 		return
 	}
 
-	rp.Redirect(
-		http.StatusTemporaryRedirect,
-		fmt.Sprintf("%s/signup/review-approval?username=%s&email=%s&action=%s", config.FRONTEND_URL, url.QueryEscape(user.Username), url.QueryEscape(user.Email), payload.Action),
-	)
+	rp.Success(user).OkJSON()
 }
 
 func (h *Auth) SignUpApprovalStatus(c *gin.Context) {

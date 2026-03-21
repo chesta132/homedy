@@ -57,8 +57,8 @@ func (s *Auth) sendSignUpApproval(user models.User) error {
 			{Label: "Requested by", Value: user.Username},
 			{Label: "Requested at", Value: time.Now().Format(time.RFC822)},
 		},
-		ApproveHref: fmt.Sprintf("%s/auth/signup/approval?identifier=%s&action=%s", config.APP_URL, identifier, url.QueryEscape(string(payloads.ApprovalApprove))),
-		DenyHref:    fmt.Sprintf("%s/auth/signup/approval?identifier=%s&action=%s", config.APP_URL, identifier, url.QueryEscape(string(payloads.ApprovalDeny))),
+		ApproveHref: fmt.Sprintf("%s/signup/review-approval?identifier=%s&action=%s", config.FRONTEND_URL, identifier, url.QueryEscape(string(payloads.ApprovalApprove))),
+		DenyHref:    fmt.Sprintf("%s/signup/review-approval?identifier=%s&action=%s", config.FRONTEND_URL, identifier, url.QueryEscape(string(payloads.ApprovalDeny))),
 	})
 	return s.mailer.Send(config.MAIL_OWNER, fmt.Sprintf("%s Sign Up Request", config.APP_NAME), html)
 }

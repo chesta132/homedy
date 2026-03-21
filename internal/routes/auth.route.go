@@ -16,8 +16,7 @@ func (rt *Router) RegisterAuth(group *gin.RouterGroup) {
 
 	group.POST("/signup", h.SignUp)
 	group.POST("/signin", h.SignIn)
-	// get for email
-	group.GET("/signup/approval", h.SignUpApproval)
+	group.PATCH("/signup/approval", amw.AppProtected(middlewares.SecretGetterHeader()), h.SignUpApproval)
 	group.GET("/signup/approval-status", h.SignUpApprovalStatus)
 
 	group.Use(amw.Protected())
