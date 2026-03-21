@@ -3,9 +3,11 @@ package config
 import "os"
 
 var (
-	GO_ENV      = os.Getenv("HOMEDY_ENV")
-	SERVER_PORT = os.Getenv("HOMEDY_PORT")
-	APP_SECRET  = os.Getenv("HOMEDY_SECRET")
+	GO_ENV       = os.Getenv("HOMEDY_ENV")
+	SERVER_PORT  = os.Getenv("HOMEDY_PORT")
+	APP_SECRET   = os.Getenv("HOMEDY_SECRET")
+	APP_URL      = os.Getenv("HOMEDY_BACKEND_URL")
+	FRONTEND_URL = os.Getenv("HOMEDY_FRONTEND_URL")
 
 	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
@@ -22,12 +24,16 @@ var (
 	MAIL_USER  = os.Getenv("HOMEDY_MAIL_USER")
 	MAIL_PASS  = os.Getenv("HOMEDY_MAIL_PASS")
 	MAIL_OWNER = os.Getenv("HOMEDY_MAIL_OWNER")
+
+	SIGNUP_IDENTIFIER_KEY = os.Getenv("HOMEDY_SIGNUP_IDENTIFIER_KEY")
 )
 
 func ReloadEnv() {
 	GO_ENV = os.Getenv("HOMEDY_ENV")
 	SERVER_PORT = os.Getenv("HOMEDY_PORT")
 	APP_SECRET = os.Getenv("HOMEDY_SECRET")
+	APP_URL = os.Getenv("HOMEDY_URL")
+	FRONTEND_URL = os.Getenv("HOMEDY_FRONTEND_URL")
 
 	DB_HOST = os.Getenv("HOMEDY_DB_HOST")
 	DB_PORT = os.Getenv("HOMEDY_DB_PORT")
@@ -44,4 +50,6 @@ func ReloadEnv() {
 	MAIL_USER = os.Getenv("HOMEDY_MAIL_USER")
 	MAIL_PASS = os.Getenv("HOMEDY_MAIL_PASS")
 	MAIL_OWNER = os.Getenv("HOMEDY_MAIL_OWNER")
+
+	SIGNUP_IDENTIFIER_KEY = os.Getenv("HOMEDY_SIGNUP_IDENTIFIER_KEY")
 }
