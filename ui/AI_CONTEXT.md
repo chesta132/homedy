@@ -133,7 +133,7 @@ src/
     │   ├── SignInPage.tsx               # identifier + password + remember_me
     │   ├── SignUpPage.tsx               # username + email + password; on success shows inline pending state + "Check request status" button
     │   ├── SignUpApprovalPage.tsx       # user checks their own request status — email input → GET /signup/approval-status
-    │   └── SignUpReviewApprovalPage.tsx # owner-facing result page — backend redirects here after approve/deny; reads ?username&email&action params
+    │   └── SignUpReviewApprovalPage.tsx # owner-facing approval action page — reads ?identifier&action params; shows confirm UI → AppSecretModal → PATCH /signup/approval → success/error state
     ├── DashboardPage.tsx           # Quick-access cards — SMB, Terminal, Converter available
     ├── SMBPage.tsx                 # File Sharing — shares tab + config tab
     ├── TerminalPage.tsx            # xterm.js terminal over WebSocket
@@ -150,7 +150,7 @@ All routes are in `src/App.tsx`:
 /signin                  → SignInPage               (UnauthGuard — redirects to /dashboard if already logged in)
 /signup                  → SignUpPage               (UnauthGuard — redirects to /dashboard if already logged in)
 /signup/approval         → SignUpApprovalPage       (public — user checks their own request status via email)
-/signup/review-approval  → SignUpReviewApprovalPage (public — backend redirects here after owner approves/denies)
+/signup/review-approval  → SignUpReviewApprovalPage (public — owner lands here from email link; confirms action + enters APP_SECRET)
 /dashboard               → DashboardPage            (protected, inside DashboardLayout)
 /dashboard/smb           → SMBPage                  (protected)
 /dashboard/terminal      → TerminalPage             (protected)
@@ -222,23 +222,25 @@ Backend is Go + Gin. All routes mount under no prefix (backend runs on `:8080`, 
 
 ### Auth — `/auth/*`
 
-| Method | Path                      | Auth?  | Body / Notes                                             | Response                      |
-| ------ | ------------------------- | ------ | -------------------------------------------------------- | ----------------------------- |
-| POST   | /signup                   | No     | `{ username, email, password, remember_me }`             | null (201)                    |
-| GET    | /signup/approval          | No     | `?identifier=<token>&action=approve\|deny` (from email)  | Redirect to `/signup/review-approval?username=...&email=...&action=...` |
-| GET    | /signup/approval-status   | No     | `?email=<e>`                                             | `{ username?, email, status: "pending"\|"approved"\|"denied" }` |
-| POST   | /signin                   | No     | `{ identifier, email\|username, password, remember_me }` | User                          |
-| POST   | /signout                  | Cookie | —                                                        | null                          |
-| GET    | /me                       | Cookie | —                                                        | User                          |
+| Method | Path                      | Auth?             | Body / Notes                                             | Response                      |
+| ------ | ------------------------- | ----------------- | -------------------------------------------------------- | ----------------------------- |
+| POST   | /signup                   | No                | `{ username, email, password, remember_me }`             | null (201)                    |
+| PATCH  | /signup/approval          | `X-APP-SECRET` header | JSON body `{ identifier, action }` — `action`: `"approve"\|"deny"` | User                          |
+| GET    | /signup/approval-status   | No                | `?email=<e>`                                             | `{ username?, email, status: "pending"\|"approved"\|"denied" }` |
+| POST   | /signin                   | No                | `{ identifier, email\|username, password, remember_me }` | User                          |
+| POST   | /signout                  | Cookie            | —                                                        | null                          |
+| GET    | /me                       | Cookie            | —                                                        | User                          |
 
 **Sign Up flow:**
 1. User fills `/signup` form → POST `/api/auth/signup` → backend creates user with `status: "pending"`, sends approval email to owner
 2. Frontend shows inline "check your inbox" state + button "Check request status" → links to `/signup/approval`
 3. `/signup/approval` — user enters their email → GET `/api/auth/signup/approval-status?email=<e>` → shows pending / approved / denied UI
-4. Owner clicks Approve/Deny link in email → GET `/api/auth/signup/approval?identifier=<token>&action=approve|deny`
-5. Backend updates user status, redirects to `/signup/review-approval?username=<u>&email=<e>&action=approve|deny` on the frontend
-6. `SignUpReviewApprovalPage` reads all 3 params: shows green "Account approved" for `approve`, red "Request denied" for `deny`, fallback "Invalid link" if params missing
-7. User can `/signin` if approved
+4. Owner clicks Approve/Deny link in email → redirected to `/signup/review-approval?identifier=<token>&action=approve|deny` on the **frontend**
+5. `SignUpReviewApprovalPage` reads `identifier` + `action` params → shows confirm UI
+6. Owner enters `APP_SECRET` via `AppSecretModal` → FE hits `PATCH /api/auth/signup/approval` with header `X-APP-SECRET: <secret>` and JSON body `{ identifier, action }`
+7. On success: backend returns `User`, page transitions to approved/denied result view
+8. On error: error message shown + "Try again" button (retries from confirm step, re-prompts secret)
+9. User can `/signin` if approved
 
 **User model — `status` field:**
 - `"pending"` — created but not yet approved by owner (cannot sign in)
