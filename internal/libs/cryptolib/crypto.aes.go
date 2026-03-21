@@ -9,8 +9,12 @@ import (
 	"io"
 )
 
-// key must 16, 24, or 32 bytes
-func EncryptGCM(plaintext, key []byte) (string, error) {
+// base64 must 16, 24, or 32 bytes
+func EncryptGCM(plaintext, b64 []byte) (string, error) {
+	key, err := base64.StdEncoding.DecodeString(string(b64))
+	if err != nil {
+		return "", err
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
@@ -29,14 +33,23 @@ func EncryptGCM(plaintext, key []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(gcm.Seal(nonce, nonce, plaintext, nil)), nil
 }
 
-// key must 16, 24, or 32 bytes
-func DecryptGCM(ciphertext, key []byte) (string, error) {
+// base64 must 16, 24, or 32 bytes
+func DecryptGCM(encrypted, b64 []byte) (string, error) {
+	key, err := base64.StdEncoding.DecodeString(string(b64))
+	if err != nil {
+		return "", err
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
 	}
 
 	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(string(encrypted))
 	if err != nil {
 		return "", err
 	}
