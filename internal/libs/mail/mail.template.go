@@ -1,0 +1,260 @@
+package mail
+
+import (
+	"fmt"
+	"homedy/config"
+	"html"
+	"strings"
+)
+
+func logoSVG(size int) string {
+	return fmt.Sprintf(`<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 2000.000000 2000.000000" preserveAspectRatio="xMidYMid meet"><g transform="translate(0.000000,2000.000000) scale(0.100000,-0.100000)" fill="#4F7CFF" stroke="none"><path d="M0 10000 l0 -10000 10000 0 10000 0 0 10000 0 10000 -10000 0 -10000 0 0 -10000z m14435 5160 c213 -16 316 -31 538 -79 39 -9 82 -20 152 -41 17 -5 46 -13 65 -18 42 -12 127 -40 155 -52 11 -4 70 -27 130 -51 222 -85 409 -182 695 -360 328 -204 788 -639 1050 -995 49 -66 214 -313 242 -362 180 -317 351 -701 410 -922 5 -19 14 -51 19 -70 6 -19 14 -48 19 -65 19 -66 38 -143 49 -200 7 -33 16 -76 21 -95 5 -19 12 -53 16 -75 3 -22 10 -65 15 -95 18 -107 28 -207 40 -381 16 -248 -6 -556 -61 -846 -24 -128 -29 -150 -40 -188 -6 -22 -15 -56 -20 -75 -5 -19 -13 -52 -19 -72 -6 -21 -15 -53 -20 -70 -18 -69 -83 -253 -92 -262 -5 -6 -9 -16 -9 -24 0 -7 -33 -79 -74 -160 -87 -174 -105 -207 -157 -283 -21 -32 -39 -60 -39 -63 0 -27 -250 -335 -365 -451 -318 -319 -743 -585 -1150 -718 -115 -38 -152 -50 -180 -58 -16 -4 -48 -13 -70 -19 -22 -7 -60 -16 -85 -20 -25 -5 -67 -14 -95 -20 -206 -44 -563 -62 -775 -39 -198 22 -246 28 -295 38 -27 5 -75 14 -105 19 -138 25 -459 125 -588 183 -34 16 -65 29 -69 29 -10 0 -295 141 -323 160 -14 10 -47 30 -75 44 -27 15 -102 61 -165 102 -63 40 -145 92 -182 114 -37 22 -73 46 -80 53 -14 14 -53 37 -62 37 -9 0 -7 -61 3 -94 5 -17 15 -51 21 -76 11 -44 16 -63 39 -147 6 -24 16 -62 22 -85 6 -24 15 -51 20 -60 5 -10 9 -25 9 -33 0 -8 4 -23 9 -33 5 -9 14 -35 20 -57 7 -22 16 -49 21 -60 4 -11 18 -47 31 -80 41 -107 153 -322 180 -345 3 -3 20 -26 38 -52 49 -74 136 -162 216 -223 66 -50 230 -155 241 -155 2 0 32 -17 67 -37 34 -21 76 -45 92 -53 17 -8 49 -27 72 -42 23 -15 45 -28 48 -28 4 0 36 -28 71 -62 52 -50 74 -82 113 -162 26 -56 58 -128 71 -161 12 -33 26 -69 31 -80 5 -11 52 -150 104 -310 53 -159 100 -299 104 -310 5 -11 14 -36 21 -55 7 -19 16 -44 20 -55 4 -11 18 -47 30 -80 12 -33 27 -71 32 -85 6 -14 15 -35 19 -47 5 -13 14 -34 19 -48 6 -14 14 -35 19 -47 5 -13 16 -39 24 -58 41 -93 122 -302 138 -355 26 -83 25 -199 -1 -242 -26 -44 -55 -57 -125 -57 -94 1 -222 52 -325 130 -111 85 -183 190 -262 384 -6 14 -14 34 -19 45 -4 11 -19 54 -33 95 -57 172 -135 390 -156 436 -12 27 -29 65 -38 84 -9 19 -43 76 -76 125 -126 190 -310 349 -471 408 -22 8 -49 18 -60 23 -32 12 -147 45 -190 54 -22 5 -60 14 -85 20 -25 6 -72 15 -105 20 -33 5 -80 14 -105 20 -25 6 -67 15 -95 20 -27 5 -70 14 -95 20 -25 6 -65 15 -90 20 -25 4 -63 14 -85 20 -22 6 -56 15 -75 20 -157 38 -399 142 -563 242 -94 58 -210 151 -290 233 -56 57 -207 247 -207 260 0 3 -17 32 -38 63 -22 31 -57 91 -80 132 -112 207 -212 359 -287 439 -110 116 -274 225 -445 294 -25 10 -55 23 -67 28 -88 36 -166 61 -215 70 -27 4 -52 10 -57 13 -11 7 -175 44 -251 56 -30 5 -77 14 -105 20 -27 6 -79 15 -115 20 -36 5 -87 14 -115 20 -27 6 -90 15 -140 20 -49 6 -117 14 -150 20 -33 5 -96 15 -140 20 -44 6 -105 15 -135 20 -30 6 -93 15 -140 21 -47 5 -110 14 -140 19 -30 5 -86 14 -125 19 -38 5 -92 14 -120 20 -27 6 -70 13 -95 16 -82 10 -386 85 -464 114 -28 11 -60 20 -71 19 -12 0 -40 -24 -69 -61 -27 -33 -75 -82 -108 -108 -59 -50 -192 -120 -227 -120 -11 0 -22 -4 -25 -9 -9 -14 -32 -18 -361 -55 -86 -9 -228 -16 -365 -16 -296 0 -825 -18 -920 -30 -142 -19 -214 -55 -265 -132 -20 -31 -25 -50 -25 -105 0 -36 5 -83 11 -102 32 -100 104 -212 161 -252 62 -43 179 -151 207 -193 123 -180 77 -421 -87 -452 -82 -16 -335 75 -470 168 -74 51 -157 141 -205 223 -103 176 -238 541 -267 721 -11 70 -11 89 4 154 49 216 228 371 556 479 95 31 115 37 200 61 25 7 55 16 68 21 13 5 33 9 45 9 13 0 27 4 33 8 5 5 34 14 64 21 30 7 69 17 85 21 17 5 48 13 70 19 247 66 533 176 585 227 18 18 13 22 -84 73 -43 23 -91 50 -106 61 -16 11 -31 20 -34 20 -17 0 -234 152 -321 224 -81 68 -296 283 -376 376 -35 41 -66 77 -69 80 -3 3 -21 25 -40 50 -19 25 -37 47 -40 50 -3 3 -41 50 -85 104 -180 225 -356 367 -515 416 -25 7 -49 17 -55 20 -27 18 -172 35 -290 34 -121 -1 -227 -15 -330 -44 -22 -6 -56 -15 -75 -20 -32 -7 -105 -31 -155 -51 -11 -4 -49 -17 -85 -29 -36 -11 -73 -25 -82 -30 -10 -6 -26 -10 -36 -10 -10 0 -22 -4 -28 -8 -23 -21 -256 -72 -326 -72 -43 0 -148 15 -210 31 -92 22 -124 32 -140 40 -10 5 -25 9 -33 9 -8 0 -23 4 -33 9 -9 5 -46 23 -82 40 -130 64 -217 140 -219 194 -2 36 31 76 214 257 103 102 216 223 251 270 66 88 154 247 154 280 0 10 4 21 9 24 4 3 11 22 15 43 3 21 11 65 17 98 5 33 14 87 19 120 5 33 14 85 20 115 6 30 13 70 17 88 3 18 9 35 14 38 5 3 9 14 9 25 0 10 4 27 9 37 5 9 24 49 42 87 95 208 304 444 527 598 90 61 94 72 63 175 -23 77 -63 224 -80 297 -24 98 -30 131 -41 215 -6 47 -15 115 -20 153 -6 37 -10 136 -10 220 1 207 5 211 141 146 33 -16 62 -29 64 -29 3 0 35 -18 71 -40 36 -22 68 -40 70 -40 3 0 38 -22 79 -50 41 -27 78 -50 83 -50 5 0 17 -9 27 -20 10 -11 22 -20 27 -20 5 0 26 -13 46 -29 20 -15 73 -55 117 -87 175 -128 406 -342 527 -491 24 -28 54 -57 68 -63 14 -7 33 -16 42 -21 10 -5 25 -9 35 -9 9 0 30 -4 47 -9 17 -5 51 -15 76 -21 25 -7 54 -16 65 -20 11 -4 39 -13 63 -19 23 -6 61 -16 85 -22 23 -6 53 -15 67 -19 14 -4 57 -17 95 -28 268 -78 545 -178 715 -259 198 -94 331 -160 389 -195 34 -21 64 -38 66 -38 6 0 160 -93 202 -121 23 -16 46 -29 51 -29 5 0 17 -9 27 -20 10 -11 22 -20 26 -20 5 0 28 -14 51 -30 24 -17 75 -53 113 -80 199 -140 321 -229 450 -330 194 -151 307 -233 475 -344 154 -102 239 -156 246 -156 3 0 19 -9 35 -21 57 -40 408 -221 529 -273 64 -27 128 -55 175 -76 22 -10 77 -32 123 -49 45 -17 117 -44 160 -60 73 -28 274 -94 427 -140 98 -30 326 -102 350 -111 11 -4 54 -18 95 -30 41 -12 84 -26 95 -30 11 -5 47 -19 80 -31 167 -61 480 -203 565 -256 19 -12 89 -54 155 -93 106 -64 196 -124 436 -290 35 -25 66 -47 69 -51 3 -4 34 -26 70 -50 36 -24 67 -46 70 -50 3 -4 59 -43 125 -87 114 -75 182 -117 285 -177 78 -45 273 -136 290 -136 6 0 19 -4 30 -10 11 -5 29 -14 40 -20 11 -5 27 -10 35 -10 8 0 23 -4 33 -9 17 -10 141 -40 242 -60 250 -48 572 -36 805 30 134 37 150 43 195 62 337 145 560 323 738 589 104 155 172 322 210 518 6 30 15 79 21 108 14 69 14 315 0 384 -5 29 -15 76 -20 103 -32 164 -104 355 -187 500 -72 126 -271 344 -402 439 -126 92 -293 186 -330 186 -6 0 -18 4 -28 10 -27 14 -131 46 -192 58 -30 6 -68 15 -85 19 -49 11 -435 8 -495 -4 -271 -57 -424 -135 -586 -298 -130 -130 -228 -291 -274 -445 -12 -41 -26 -88 -31 -104 -5 -16 -9 -44 -9 -61 0 -18 -8 -43 -17 -54 l-18 -22 -76 53 c-196 138 -400 351 -503 528 -239 409 -313 854 -224 1338 49 267 164 548 320 781 216 320 486 559 834 734 99 50 153 75 209 97 11 4 31 12 45 18 58 25 242 81 330 101 25 5 65 14 90 20 242 53 528 71 805 51z m-11287 -1174 c196 -86 452 -219 532 -276 38 -27 68 -93 98 -215 18 -71 30 -119 39 -155 15 -55 -1 -79 -105 -162 -53 -43 -130 -107 -170 -143 -40 -36 -77 -63 -83 -60 -5 4 -28 32 -52 62 -23 31 -54 72 -69 92 -15 20 -31 43 -35 51 -4 8 -18 31 -31 50 -60 89 -196 424 -230 570 -27 115 -32 142 -32 179 0 39 1 41 31 41 17 0 65 -15 107 -34z m-1056 -3001 c26 -7 81 -30 123 -49 41 -20 77 -36 79 -36 3 0 31 -12 63 -26 32 -14 73 -32 91 -40 17 -8 49 -21 70 -30 20 -9 62 -27 92 -41 30 -14 64 -29 75 -33 11 -4 31 -12 45 -18 69 -31 382 -162 385 -162 3 0 30 -12 62 -26 32 -14 74 -33 93 -41 19 -8 53 -23 75 -33 103 -46 135 -60 140 -60 3 0 27 -10 53 -21 98 -44 110 -49 124 -49 7 0 47 33 89 73 67 63 120 98 194 127 55 22 148 31 199 19 206 -49 324 -205 326 -429 1 -192 -99 -391 -244 -489 -84 -57 -152 -76 -261 -75 -89 0 -106 4 -158 29 -161 80 -257 274 -229 465 9 56 8 67 -6 81 -10 9 -87 46 -172 83 -85 38 -174 77 -197 87 -24 10 -45 19 -48 19 -3 0 -38 15 -78 34 -40 19 -93 43 -119 55 -27 12 -69 30 -95 42 -27 12 -64 28 -83 36 -194 84 -186 83 -209 30 -8 -17 -23 -52 -33 -77 -56 -130 -80 -170 -105 -176 -25 -7 -114 28 -133 51 -9 11 17 105 33 122 26 25 -11 65 -81 90 -44 15 -54 10 -71 -30 -36 -82 -54 -117 -62 -117 -10 0 -62 22 -69 30 -3 3 -18 13 -35 22 -24 14 -30 23 -28 49 1 18 6 42 11 53 42 88 92 218 92 236 0 10 -19 25 -48 38 -50 23 -82 63 -82 105 0 29 34 75 64 87 11 5 21 9 21 9 0 1 21 -6 47 -14z"/><path d="M3980 10329 c-148 -66 -249 -288 -198 -438 75 -220 325 -209 445 19 40 75 53 126 53 203 0 173 -150 282 -300 216z"/></g></svg>`, size, size)
+}
+
+type InfoField struct {
+	Label string
+	Value string
+}
+
+type GeneralInfoData struct {
+	Title    string
+	Subtitle string
+	Fields   []InfoField
+	Button   struct {
+		Label string
+		Href  string
+	}
+}
+
+type ApprovalData struct {
+	Title       string
+	Subtitle    string
+	Fields      []InfoField
+	ApproveHref string
+	DenyHref    string
+	Warning     string
+}
+
+func GeneralInfoEmail(data GeneralInfoData) string {
+	var sb strings.Builder
+
+	sb.WriteString(emailHeader())
+
+	sb.WriteString(`
+	<tr>
+		<td style="padding:32px 36px;">
+			<table width="100%" cellpadding="0" cellspacing="0" border="0">
+				<tr>
+					<td style="padding-bottom:20px;">
+						<span style="display:inline-flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:4px 10px;">
+							<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4F7CFF;"></span>
+							<span style="color:#888;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Information</span>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td style="padding-bottom:8px;">
+						<h1 style="margin:0;color:#ededed;font-size:20px;font-weight:600;letter-spacing:-0.02em;line-height:1.3;">` + html.EscapeString(data.Title) + `</h1>
+					</td>
+				</tr>
+				<tr>
+					<td style="padding-bottom:28px;">
+						<p style="margin:0;color:#555;font-size:13px;line-height:1.6;">` + html.EscapeString(data.Subtitle) + `</p>
+					</td>
+				</tr>
+				<tr>
+					<td style="border-top:1px solid #1e1e1e;padding-bottom:24px;"></td>
+				</tr>
+	`)
+
+	if len(data.Fields) > 0 {
+		sb.WriteString(`<tr><td style="padding-bottom:28px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">`)
+		for i := 0; i < len(data.Fields); i += 2 {
+			sb.WriteString(`<tr>`)
+			sb.WriteString(infoCell(data.Fields[i]))
+			if i+1 < len(data.Fields) {
+				sb.WriteString(infoCell(data.Fields[i+1]))
+			} else {
+				sb.WriteString(`<td width="50%"></td>`)
+			}
+			sb.WriteString(`</tr><tr><td height="16" colspan="2"></td></tr>`)
+		}
+		sb.WriteString(`</table></td></tr>`)
+	}
+
+	if data.Button.Href != "" && data.Button.Label != "" {
+		sb.WriteString(fmt.Sprintf(`
+			<tr>
+				<td style="padding-bottom:20px;">
+					<a href="%s" style="display:inline-block;padding:10px 18px;background:#fff;color:#0a0a0a;border-radius:7px;font-size:13px;font-weight:500;text-decoration:none;letter-spacing:-0.01em;">%s →</a>
+				</td>
+			</tr>
+		`, data.Button.Href, html.EscapeString(data.Button.Label)))
+	}
+
+	sb.WriteString(fmt.Sprintf(`
+			<tr>
+				<td>
+					<p style="margin:0;color:#444;font-size:11px;line-height:1.6;">
+						You're receiving this because you have notifications enabled on
+						<a href="%s" style="color:#4F7CFF;text-decoration:none;">Homedy</a>.
+						Manage preferences in your dashboard.
+					</p>
+				</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	`, config.FRONTEND_URL))
+
+	sb.WriteString(emailFooter())
+
+	return sb.String()
+}
+
+func ApprovalEmail(data ApprovalData) string {
+	var sb strings.Builder
+
+	sb.WriteString(emailHeader())
+
+	sb.WriteString(`
+	<tr>
+		<td style="padding:32px 36px;">
+			<table width="100%" cellpadding="0" cellspacing="0" border="0">
+				<tr>
+					<td style="padding-bottom:20px;">
+						<span style="display:inline-flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:4px 10px;">
+							<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f59e0b;"></span>
+							<span style="color:#888;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Approval Required</span>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td style="padding-bottom:8px;">
+						<h1 style="margin:0;color:#ededed;font-size:20px;font-weight:600;letter-spacing:-0.02em;line-height:1.3;">` + html.EscapeString(data.Title) + `</h1>
+					</td>
+				</tr>
+				<tr>
+					<td style="padding-bottom:28px;">
+						<p style="margin:0;color:#555;font-size:13px;line-height:1.6;">` + html.EscapeString(data.Subtitle) + `</p>
+					</td>
+				</tr>
+				<tr>
+					<td style="border-top:1px solid #1e1e1e;padding-bottom:24px;"></td>
+				</tr>
+	`)
+
+	if len(data.Fields) > 0 {
+		sb.WriteString(`<tr><td style="padding-bottom:28px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">`)
+		for i := 0; i < len(data.Fields); i += 2 {
+			sb.WriteString(`<tr>`)
+			sb.WriteString(infoCell(data.Fields[i]))
+			if i+1 < len(data.Fields) {
+				sb.WriteString(infoCell(data.Fields[i+1]))
+			} else {
+				sb.WriteString(`<td width="50%"></td>`)
+			}
+			sb.WriteString(`</tr><tr><td height="16" colspan="2"></td></tr>`)
+		}
+		sb.WriteString(`</table></td></tr>`)
+	}
+
+	if data.Warning != "" {
+		sb.WriteString(fmt.Sprintf(`
+			<tr>
+				<td style="padding-bottom:24px;">
+					<div style="background:#1a1400;border:1px solid #2a2000;border-radius:7px;padding:12px 14px;">
+						<p style="margin:0;color:#a07020;font-size:12px;line-height:1.6;">%s</p>
+					</div>
+				</td>
+			</tr>
+		`, html.EscapeString(data.Warning)))
+	}
+
+	sb.WriteString(fmt.Sprintf(`
+		<tr>
+			<td style="padding-bottom:16px;">
+				<a href="%s" style="display:inline-block;padding:10px 18px;background:#4F7CFF;color:#fff;border-radius:7px;font-size:13px;font-weight:500;text-decoration:none;letter-spacing:-0.01em;margin-right:8px;">✓ Approve</a>
+				<a href="%s" style="display:inline-block;padding:10px 18px;background:transparent;color:#f87171;border:1px solid #2a2a2a;border-radius:7px;font-size:13px;font-weight:500;text-decoration:none;letter-spacing:-0.01em;">✕ Deny</a>
+			</td>
+		</tr>
+	`, data.ApproveHref, data.DenyHref))
+
+	sb.WriteString(fmt.Sprintf(`
+			<tr>
+				<td>
+					<p style="margin:0;color:#444;font-size:11px;line-height:1.6;">
+						Buttons are single-use token links. If they've expired, manage access directly via
+						<a href="%s" style="color:#4F7CFF;text-decoration:none;">Homedy Dashboard</a>.
+					</p>
+				</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	`, config.FRONTEND_URL))
+
+	sb.WriteString(emailFooter())
+
+	return sb.String()
+}
+
+func emailHeader() string {
+	return fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+</head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0a0a;padding:40px 20px;">
+<tr>
+	<td align="center">
+		<table width="540" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;width:100%%;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:12px;overflow:hidden;">
+			<tr>
+				<td style="background:#111111;border-bottom:1px solid #1e1e1e;padding:28px 36px;">
+					<table cellpadding="0" cellspacing="0" border="0">
+						<tr>
+							<td style="padding-right:12px;vertical-align:middle;">
+								%s
+							</td>
+							<td style="vertical-align:middle;">
+								<p style="margin:0;color:#ededed;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Homedy</p>
+								<p style="margin:1px 0 0;color:#555;font-size:11px;">Internal Server Manager</p>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+`, logoSVG(28))
+}
+
+func emailFooter() string {
+	return `
+		<tr>
+			<td style="background:#0d0d0d;border-top:1px solid #1a1a1a;padding:20px 36px;">
+				<table width="100%" cellpadding="0" cellspacing="0" border="0">
+					<tr>
+						<td><p style="margin:0;color:#333;font-size:11px;">© 2025 Homedy · All rights reserved</p></td>
+						<td align="right"><p style="margin:0;color:#2a2a2a;font-size:10px;">homedy.local</p></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</body>
+</html>`
+}
+
+func infoCell(f InfoField) string {
+	return fmt.Sprintf(`
+		<td width="50%%" style="vertical-align:top;">
+			<p style="margin:0 0 4px;color:#444;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">%s</p>
+			<p style="margin:0;color:#c0c0c0;font-size:13px;">%s</p>
+		</td>
+	`, html.EscapeString(f.Label), html.EscapeString(f.Value))
+}
