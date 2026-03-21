@@ -95,6 +95,7 @@ src/
 │
 ├── components/
 │   ├── AuthGuard.tsx               # Fetches /auth/me, shows spinner, redirects on fail
+│   ├── UnauthGuard.tsx             # Fetches /auth/me, redirects to /dashboard if already logged in (wraps /signin, /signup)
 │   ├── ui/                         # Radix-based components (hand-written, not CLI)
 │   │   ├── button.tsx              # variants: default | outline | ghost | destructive
 │   │   ├── input.tsx               # error prop shows red border + message below
@@ -129,8 +130,10 @@ src/
 │
 └── pages/
     ├── auth/
-    │   ├── SignInPage.tsx          # identifier + password + remember_me
-    │   └── SignUpPage.tsx          # username + email + password + remember_me
+    │   ├── SignInPage.tsx               # identifier + password + remember_me
+    │   ├── SignUpPage.tsx               # username + email + password; on success shows inline pending state + "Check request status" button
+    │   ├── SignUpApprovalPage.tsx       # user checks their own request status — email input → GET /signup/approval-status
+    │   └── SignUpReviewApprovalPage.tsx # owner-facing result page — backend redirects here after approve/deny; reads ?username&email&action params
     ├── DashboardPage.tsx           # Quick-access cards — SMB, Terminal, Converter available
     ├── SMBPage.tsx                 # File Sharing — shares tab + config tab
     ├── TerminalPage.tsx            # xterm.js terminal over WebSocket
@@ -144,14 +147,16 @@ src/
 All routes are in `src/App.tsx`:
 
 ```
-/signin                  → SignInPage       (public)
-/signup                  → SignUpPage       (public)
-/dashboard               → DashboardPage   (protected, inside DashboardLayout)
-/dashboard/smb           → SMBPage         (protected)
-/dashboard/terminal      → TerminalPage    (protected)
-/dashboard/converter     → ConverterPage   (protected)
-/dashboard/profile       → not yet built   (navigate goes here from Topbar)
-*                        → redirect /signin
+/signin                  → SignInPage               (UnauthGuard — redirects to /dashboard if already logged in)
+/signup                  → SignUpPage               (UnauthGuard — redirects to /dashboard if already logged in)
+/signup/approval         → SignUpApprovalPage       (public — user checks their own request status via email)
+/signup/review-approval  → SignUpReviewApprovalPage (public — backend redirects here after owner approves/denies)
+/dashboard               → DashboardPage            (protected, inside DashboardLayout)
+/dashboard/smb           → SMBPage                  (protected)
+/dashboard/terminal      → TerminalPage             (protected)
+/dashboard/converter     → ConverterPage            (protected)
+/dashboard/profile       → not yet built            (navigate goes here from Topbar)
+*                        → redirect /dashboard      (AuthGuard handles unauthenticated → /signin from there)
 ```
 
 **AuthGuard** (`components/AuthGuard.tsx`):
@@ -217,12 +222,28 @@ Backend is Go + Gin. All routes mount under no prefix (backend runs on `:8080`, 
 
 ### Auth — `/auth/*`
 
-| Method | Path     | Auth?  | Body                                                     | Response |
-| ------ | -------- | ------ | -------------------------------------------------------- | -------- |
-| POST   | /signup  | No     | `{ username, email, password, remember_me }`             | User     |
-| POST   | /signin  | No     | `{ identifier, email\|username, password, remember_me }` | User     |
-| POST   | /signout | Cookie | —                                                        | null     |
-| GET    | /me      | Cookie | —                                                        | User     |
+| Method | Path                      | Auth?  | Body / Notes                                             | Response                      |
+| ------ | ------------------------- | ------ | -------------------------------------------------------- | ----------------------------- |
+| POST   | /signup                   | No     | `{ username, email, password, remember_me }`             | null (201)                    |
+| GET    | /signup/approval          | No     | `?identifier=<token>&action=approve\|deny` (from email)  | Redirect to `/signup/review-approval?username=...&email=...&action=...` |
+| GET    | /signup/approval-status   | No     | `?email=<e>`                                             | `{ username?, email, status: "pending"\|"approved"\|"denied" }` |
+| POST   | /signin                   | No     | `{ identifier, email\|username, password, remember_me }` | User                          |
+| POST   | /signout                  | Cookie | —                                                        | null                          |
+| GET    | /me                       | Cookie | —                                                        | User                          |
+
+**Sign Up flow:**
+1. User fills `/signup` form → POST `/api/auth/signup` → backend creates user with `status: "pending"`, sends approval email to owner
+2. Frontend shows inline "check your inbox" state + button "Check request status" → links to `/signup/approval`
+3. `/signup/approval` — user enters their email → GET `/api/auth/signup/approval-status?email=<e>` → shows pending / approved / denied UI
+4. Owner clicks Approve/Deny link in email → GET `/api/auth/signup/approval?identifier=<token>&action=approve|deny`
+5. Backend updates user status, redirects to `/signup/review-approval?username=<u>&email=<e>&action=approve|deny` on the frontend
+6. `SignUpReviewApprovalPage` reads all 3 params: shows green "Account approved" for `approve`, red "Request denied" for `deny`, fallback "Invalid link" if params missing
+7. User can `/signin` if approved
+
+**User model — `status` field:**
+- `"pending"` — created but not yet approved by owner (cannot sign in)
+- `"active"` — approved, can sign in normally
+- Sign in with a pending account returns an error from backend
 
 Auth uses **HTTP-only cookies** (access + refresh token). `withCredentials: true` is set on the axios instance.
 
