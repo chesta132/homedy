@@ -6,11 +6,19 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserStatus string
+
+const (
+	UserActive  UserStatus = "active"
+	UserPending UserStatus = "pending"
+)
+
 type User struct {
 	BaseRecyclable
-	Username string `json:"username" gorm:"not null,unique" example:"chesta_ardiona"`
-	Email    string `json:"email" gorm:"not null,unique" example:"chestaardi4@gmail.com"`
-	Password string `json:"-" gorm:"not null"`
+	Username string     `json:"username" gorm:"not null,unique" example:"chesta_ardiona"`
+	Email    string     `json:"email" gorm:"not null,unique" example:"chestaardi4@gmail.com"`
+	Password string     `json:"-" gorm:"not null"`
+	Status   UserStatus `json:"status" gorm:"not null;default:'pending';index"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
