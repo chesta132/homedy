@@ -1,0 +1,1004 @@
+basePath: /api
+definitions:
+  models.SambaBool:
+    enum:
+    - "yes"
+    - "no"
+    type: string
+    x-enum-varnames:
+    - "YES"
+    - "NO"
+  models.Share:
+    properties:
+      admin_users:
+        example:
+        - root
+        items:
+          type: string
+        minItems: 1
+        type: array
+      browsable:
+        allOf:
+        - $ref: '#/definitions/models.SambaBool'
+        example: "yes"
+      path:
+        example: /var/www/html
+        type: string
+      permissions:
+        example:
+        - 7
+        - 7
+        - 7
+        items:
+          type: integer
+        type: array
+      read_only:
+        allOf:
+        - $ref: '#/definitions/models.SambaBool'
+        example: "no"
+      valid_users:
+        example:
+        - guest
+        - chesta
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - admin_users
+    - browsable
+    - path
+    - permissions
+    - read_only
+    - valid_users
+    type: object
+  models.ShareMap:
+    additionalProperties:
+      type: string
+    type: object
+  models.Shares:
+    additionalProperties:
+      $ref: '#/definitions/models.Share'
+    type: object
+  models.User:
+    properties:
+      created_at:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      delete_at:
+        example: 2006-01-02T15:04:05Z07:00
+        format: date
+        type: string
+      email:
+        example: chestaardi4@gmail.com
+        type: string
+      id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      status:
+        $ref: '#/definitions/models.UserStatus'
+      updated_at:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      username:
+        example: chesta_ardiona
+        type: string
+    type: object
+  models.UserStatus:
+    enum:
+    - active
+    - pending
+    type: string
+    x-enum-varnames:
+    - UserActive
+    - UserPending
+  multipart.FileHeader:
+    properties:
+      filename:
+        type: string
+      header:
+        $ref: '#/definitions/textproto.MIMEHeader'
+      size:
+        format: int64
+        type: integer
+    type: object
+  payloads.ApprovalAction:
+    enum:
+    - approve
+    - deny
+    type: string
+    x-enum-varnames:
+    - ApprovalApprove
+    - ApprovalDeny
+  payloads.ApprovalStatus:
+    enum:
+    - pending
+    - approved
+    - denied
+    type: string
+    x-enum-varnames:
+    - ApprovalPending
+    - ApprovalApproved
+    - ApprovalDenied
+  payloads.RequestConvertMultiple:
+    properties:
+      convert_to:
+        items:
+          type: string
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/multipart.FileHeader'
+        type: array
+    required:
+    - convert_to
+    - files
+    type: object
+  payloads.RequestConvertOne:
+    properties:
+      convert_to:
+        type: string
+      file:
+        $ref: '#/definitions/multipart.FileHeader'
+    required:
+    - convert_to
+    - file
+    type: object
+  payloads.RequestCreateShare:
+    properties:
+      admin_users:
+        example:
+        - root
+        items:
+          type: string
+        minItems: 1
+        type: array
+      browsable:
+        allOf:
+        - $ref: '#/definitions/models.SambaBool'
+        example: "yes"
+      name:
+        example: apache_source
+        type: string
+      path:
+        example: /var/www/html
+        type: string
+      permissions:
+        example:
+        - 7
+        - 7
+        - 7
+        items:
+          type: integer
+        type: array
+      read_only:
+        allOf:
+        - $ref: '#/definitions/models.SambaBool'
+        example: "no"
+      valid_users:
+        example:
+        - guest
+        - chesta
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - admin_users
+    - browsable
+    - name
+    - path
+    - permissions
+    - read_only
+    - valid_users
+    type: object
+  payloads.RequestSignIn:
+    properties:
+      identifier:
+        description: email or username
+        example: chesta_ardiona
+        type: string
+      password:
+        example: YourPassword123
+        type: string
+      remember_me:
+        type: boolean
+    required:
+    - identifier
+    - password
+    type: object
+  payloads.RequestSignUp:
+    properties:
+      email:
+        example: chestaardi4@gmail.com
+        type: string
+      password:
+        example: YourPassword123
+        type: string
+      username:
+        example: chesta_ardiona
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  payloads.RequestSignUpApproval:
+    properties:
+      action:
+        $ref: '#/definitions/payloads.ApprovalAction'
+      identifier:
+        type: string
+    required:
+    - action
+    - identifier
+    type: object
+  payloads.RequestSignUpApprovalStatus:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  payloads.ResponseSignUpApprovalStatus:
+    properties:
+      email:
+        type: string
+      status:
+        $ref: '#/definitions/payloads.ApprovalStatus'
+      username:
+        type: string
+    type: object
+  reply.ErrorPayload:
+    properties:
+      code:
+        description: Machine-readable error code
+        type: string
+      details:
+        description: Optional debug details
+        type: string
+      fields:
+        allOf:
+        - $ref: '#/definitions/reply.FieldsError'
+        description: Fields causing the error (if any)
+      message:
+        description: Human-readable message
+        type: string
+    type: object
+  reply.FieldsError:
+    additionalProperties:
+      type: string
+    type: object
+  replylib.CodeError:
+    enum:
+    - NOT_FOUND
+    - SERVER_ERROR
+    - BAD_REQUEST
+    - BAD_GATEWAY
+    - UNAUTHORIZED
+    - CONFLICT
+    - FORBIDDEN
+    - UNPROCESSABLE_ENTITY
+    - TOO_MANY_REQUESTS
+    - SERVICE_UNAVAILABLE
+    - GATEWAY_TIMEOUT
+    - METHOD_NOT_ALLOWED
+    - NOT_ACCEPTABLE
+    - REQUEST_TIMEOUT
+    - PAYLOAD_TOO_LARGE
+    - UNSUPPORTED_MEDIA_TYPE
+    - GONE
+    - NOT_IMPLEMENTED
+    type: string
+    x-enum-varnames:
+    - SwagCodeNotFound
+    - SwagCodeServerError
+    - SwagCodeBadRequest
+    - SwagCodeBadGateway
+    - SwagCodeUnauthorized
+    - SwagCodeConflict
+    - SwagCodeForbidden
+    - SwagCodeUnprocessableEntity
+    - SwagCodeTooManyRequests
+    - SwagCodeServiceUnavailable
+    - SwagCodeGatewayTimeout
+    - SwagCodeMethodNotAllowed
+    - SwagCodeNotAcceptable
+    - SwagCodeRequestTimeout
+    - SwagCodePayloadTooLarge
+    - SwagCodeUnsupportedMedia
+    - SwagCodeGone
+    - SwagCodeNotImplemented
+  replylib.Envelope:
+    properties:
+      data: {}
+      meta:
+        $ref: '#/definitions/replylib.Meta'
+    type: object
+  replylib.Meta:
+    properties:
+      debug: {}
+      information:
+        type: string
+      pagination:
+        $ref: '#/definitions/replylib.Pagination'
+      status:
+        allOf:
+        - $ref: '#/definitions/replylib.status'
+        description: SUCCESS or ERROR
+        example: SUCCESS
+      timestamp:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      tokens:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  replylib.Pagination:
+    properties:
+      current:
+        description: current offset
+        type: integer
+      has_next:
+        description: true if data more than replied
+        type: boolean
+      next:
+        description: if has_next is false, next is 0
+        type: integer
+    type: object
+  replylib.status:
+    enum:
+    - SUCCESS
+    - ERROR
+    type: string
+    x-enum-varnames:
+    - Success
+    - Error
+  textproto.MIMEHeader:
+    additionalProperties:
+      items:
+        type: string
+      type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is an API used for manages home server (ubuntu/debian).
+  title: Homedy API
+  version: "1.0"
+paths:
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get signed in account information
+      tags:
+      - auth
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: sign in identity
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Sign in onto existing account
+      tags:
+      - auth
+  /auth/signout:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/replylib.Envelope'
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Sign out account for one device (request device). Have to sign in first
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Create new account and ask [config.MAIL_OWNER] to register approval,
+        user will be notified if account successfully review
+      parameters:
+      - description: data of new account
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignUp'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/replylib.Envelope'
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Creates new account
+      tags:
+      - auth
+  /auth/signup/approval:
+    patch:
+      consumes:
+      - application/json
+      description: Owner only allow or deny sign up request. Identified by app secret
+      parameters:
+      - description: app secret authentication for access
+        in: header
+        name: X-APP-SECRET
+        required: true
+        type: string
+      - description: data of sign up request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignUpApproval'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Allow or deny sign up request
+      tags:
+      - auth
+  /auth/signup/approval-status:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: identity to check status
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignUpApprovalStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/payloads.ResponseSignUpApprovalStatus'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Check sign up status
+      tags:
+      - auth
+  /backup:
+    post:
+      parameters:
+      - description: app secret authentication for access
+        in: header
+        name: X-APP-SECRET
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: all existing shares
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Restore samba configuration and shares from latest backup
+      tags:
+      - folder-sharing
+  /config:
+    get:
+      parameters:
+      - description: app secret authentication for access
+        in: header
+        name: X-APP-SECRET
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ShareMap'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get samba configuration
+      tags:
+      - folder-sharing
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: app secret authentication for access
+        in: header
+        name: X-APP-SECRET
+        required: true
+        type: string
+      - description: updated samba config
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShareMap'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ShareMap'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Update samba configuration
+      tags:
+      - folder-sharing
+  /convert/multiple:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: files and convert target
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestConvertMultiple'
+      produces:
+      - application/json
+      - application/zip
+      responses:
+        "200":
+          description: 'File type: zip'
+          schema:
+            type: file
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Convert multiple files and zip converted
+      tags:
+      - converter
+  /convert/single:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: file and convert target
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestConvertOne'
+      produces:
+      - application/json
+      - application/octet-stream
+      responses:
+        "200":
+          description: 'File type: convert target'
+          schema:
+            type: file
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Convert one file and response converted file
+      tags:
+      - converter
+  /samba:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get all existing shares
+      tags:
+      - folder-sharing
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: new folder share config
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestCreateShare'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: all existing shares
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Create new folder share
+      tags:
+      - folder-sharing
+  /samba/{name}:
+    delete:
+      parameters:
+      - example: apache_source
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: all existing shares
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Delete existing share by name
+      tags:
+      - folder-sharing
+    get:
+      parameters:
+      - example: apache_source
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Share'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get existing share by name
+      tags:
+      - folder-sharing
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: updated folder share config
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.Share'
+      - example: apache_source
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: all existing shares
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Update existing share by name
+      tags:
+      - folder-sharing
+  /ws/terminal:
+    get:
+      parameters:
+      - description: app secret authentication for access
+        in: query
+        name: app_secret
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'File type: convert target'
+          schema:
+            type: file
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Websocket to access terminal
+      tags:
+      - terminal
+swagger: "2.0"

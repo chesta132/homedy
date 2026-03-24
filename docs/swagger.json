@@ -1,0 +1,1697 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is an API used for manages home server (ubuntu/debian).",
+        "title": "Homedy API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/auth/me": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get signed in account information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signin": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign in onto existing account",
+                "parameters": [
+                    {
+                        "description": "sign in identity",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignIn"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signout": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign out account for one device (request device). Have to sign in first",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/replylib.Envelope"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup": {
+            "post": {
+                "description": "Create new account and ask [config.MAIL_OWNER] to register approval, user will be notified if account successfully review",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Creates new account",
+                "parameters": [
+                    {
+                        "description": "data of new account",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/replylib.Envelope"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup/approval": {
+            "patch": {
+                "description": "Owner only allow or deny sign up request. Identified by app secret",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Allow or deny sign up request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "X-APP-SECRET",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data of sign up request",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignUpApproval"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup/approval-status": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Check sign up status",
+                "parameters": [
+                    {
+                        "description": "identity to check status",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignUpApprovalStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/payloads.ResponseSignUpApprovalStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/backup": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Restore samba configuration and shares from latest backup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "X-APP-SECRET",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all existing shares",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/config": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Get samba configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "X-APP-SECRET",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ShareMap"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Update samba configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "X-APP-SECRET",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "updated samba config",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ShareMap"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ShareMap"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/convert/multiple": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/zip"
+                ],
+                "tags": [
+                    "converter"
+                ],
+                "summary": "Convert multiple files and zip converted",
+                "parameters": [
+                    {
+                        "description": "files and convert target",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestConvertMultiple"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File type: zip",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/convert/single": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "converter"
+                ],
+                "summary": "Convert one file and response converted file",
+                "parameters": [
+                    {
+                        "description": "file and convert target",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestConvertOne"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File type: convert target",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/samba": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Get all existing shares",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Create new folder share",
+                "parameters": [
+                    {
+                        "description": "new folder share config",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestCreateShare"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "all existing shares",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/samba/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Get existing share by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "apache_source",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Share"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Update existing share by name",
+                "parameters": [
+                    {
+                        "description": "updated folder share config",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Share"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "apache_source",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all existing shares",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Delete existing share by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "apache_source",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all existing shares",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/ws/terminal": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "terminal"
+                ],
+                "summary": "Websocket to access terminal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "app_secret",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File type: convert target",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.SambaBool": {
+            "type": "string",
+            "enum": [
+                "yes",
+                "no"
+            ],
+            "x-enum-varnames": [
+                "YES",
+                "NO"
+            ]
+        },
+        "models.Share": {
+            "type": "object",
+            "required": [
+                "admin_users",
+                "browsable",
+                "path",
+                "permissions",
+                "read_only",
+                "valid_users"
+            ],
+            "properties": {
+                "admin_users": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "root"
+                    ]
+                },
+                "browsable": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SambaBool"
+                        }
+                    ],
+                    "example": "yes"
+                },
+                "path": {
+                    "type": "string",
+                    "example": "/var/www/html"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        7,
+                        7,
+                        7
+                    ]
+                },
+                "read_only": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SambaBool"
+                        }
+                    ],
+                    "example": "no"
+                },
+                "valid_users": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "guest",
+                        "chesta"
+                    ]
+                }
+            }
+        },
+        "models.ShareMap": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "models.Shares": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/models.Share"
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "delete_at": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.UserStatus"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "chesta_ardiona"
+                }
+            }
+        },
+        "models.UserStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "pending"
+            ],
+            "x-enum-varnames": [
+                "UserActive",
+                "UserPending"
+            ]
+        },
+        "multipart.FileHeader": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string"
+                },
+                "header": {
+                    "$ref": "#/definitions/textproto.MIMEHeader"
+                },
+                "size": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "payloads.ApprovalAction": {
+            "type": "string",
+            "enum": [
+                "approve",
+                "deny"
+            ],
+            "x-enum-varnames": [
+                "ApprovalApprove",
+                "ApprovalDeny"
+            ]
+        },
+        "payloads.ApprovalStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "approved",
+                "denied"
+            ],
+            "x-enum-varnames": [
+                "ApprovalPending",
+                "ApprovalApproved",
+                "ApprovalDenied"
+            ]
+        },
+        "payloads.RequestConvertMultiple": {
+            "type": "object",
+            "required": [
+                "convert_to",
+                "files"
+            ],
+            "properties": {
+                "convert_to": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/multipart.FileHeader"
+                    }
+                }
+            }
+        },
+        "payloads.RequestConvertOne": {
+            "type": "object",
+            "required": [
+                "convert_to",
+                "file"
+            ],
+            "properties": {
+                "convert_to": {
+                    "type": "string"
+                },
+                "file": {
+                    "$ref": "#/definitions/multipart.FileHeader"
+                }
+            }
+        },
+        "payloads.RequestCreateShare": {
+            "type": "object",
+            "required": [
+                "admin_users",
+                "browsable",
+                "name",
+                "path",
+                "permissions",
+                "read_only",
+                "valid_users"
+            ],
+            "properties": {
+                "admin_users": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "root"
+                    ]
+                },
+                "browsable": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SambaBool"
+                        }
+                    ],
+                    "example": "yes"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "apache_source"
+                },
+                "path": {
+                    "type": "string",
+                    "example": "/var/www/html"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        7,
+                        7,
+                        7
+                    ]
+                },
+                "read_only": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SambaBool"
+                        }
+                    ],
+                    "example": "no"
+                },
+                "valid_users": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "guest",
+                        "chesta"
+                    ]
+                }
+            }
+        },
+        "payloads.RequestSignIn": {
+            "type": "object",
+            "required": [
+                "identifier",
+                "password"
+            ],
+            "properties": {
+                "identifier": {
+                    "description": "email or username",
+                    "type": "string",
+                    "example": "chesta_ardiona"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "YourPassword123"
+                },
+                "remember_me": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "payloads.RequestSignUp": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "YourPassword123"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "chesta_ardiona"
+                }
+            }
+        },
+        "payloads.RequestSignUpApproval": {
+            "type": "object",
+            "required": [
+                "action",
+                "identifier"
+            ],
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/payloads.ApprovalAction"
+                },
+                "identifier": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestSignUpApprovalStatus": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.ResponseSignUpApprovalStatus": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/payloads.ApprovalStatus"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "reply.ErrorPayload": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Machine-readable error code",
+                    "type": "string"
+                },
+                "details": {
+                    "description": "Optional debug details",
+                    "type": "string"
+                },
+                "fields": {
+                    "description": "Fields causing the error (if any)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/reply.FieldsError"
+                        }
+                    ]
+                },
+                "message": {
+                    "description": "Human-readable message",
+                    "type": "string"
+                }
+            }
+        },
+        "reply.FieldsError": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "replylib.CodeError": {
+            "type": "string",
+            "enum": [
+                "NOT_FOUND",
+                "SERVER_ERROR",
+                "BAD_REQUEST",
+                "BAD_GATEWAY",
+                "UNAUTHORIZED",
+                "CONFLICT",
+                "FORBIDDEN",
+                "UNPROCESSABLE_ENTITY",
+                "TOO_MANY_REQUESTS",
+                "SERVICE_UNAVAILABLE",
+                "GATEWAY_TIMEOUT",
+                "METHOD_NOT_ALLOWED",
+                "NOT_ACCEPTABLE",
+                "REQUEST_TIMEOUT",
+                "PAYLOAD_TOO_LARGE",
+                "UNSUPPORTED_MEDIA_TYPE",
+                "GONE",
+                "NOT_IMPLEMENTED"
+            ],
+            "x-enum-varnames": [
+                "SwagCodeNotFound",
+                "SwagCodeServerError",
+                "SwagCodeBadRequest",
+                "SwagCodeBadGateway",
+                "SwagCodeUnauthorized",
+                "SwagCodeConflict",
+                "SwagCodeForbidden",
+                "SwagCodeUnprocessableEntity",
+                "SwagCodeTooManyRequests",
+                "SwagCodeServiceUnavailable",
+                "SwagCodeGatewayTimeout",
+                "SwagCodeMethodNotAllowed",
+                "SwagCodeNotAcceptable",
+                "SwagCodeRequestTimeout",
+                "SwagCodePayloadTooLarge",
+                "SwagCodeUnsupportedMedia",
+                "SwagCodeGone",
+                "SwagCodeNotImplemented"
+            ]
+        },
+        "replylib.Envelope": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "meta": {
+                    "$ref": "#/definitions/replylib.Meta"
+                }
+            }
+        },
+        "replylib.Meta": {
+            "type": "object",
+            "properties": {
+                "debug": {},
+                "information": {
+                    "type": "string"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/replylib.Pagination"
+                },
+                "status": {
+                    "description": "SUCCESS or ERROR",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/replylib.status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "replylib.Pagination": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "description": "current offset",
+                    "type": "integer"
+                },
+                "has_next": {
+                    "description": "true if data more than replied",
+                    "type": "boolean"
+                },
+                "next": {
+                    "description": "if has_next is false, next is 0",
+                    "type": "integer"
+                }
+            }
+        },
+        "replylib.status": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "ERROR"
+            ],
+            "x-enum-varnames": [
+                "Success",
+                "Error"
+            ]
+        },
+        "textproto.MIMEHeader": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
