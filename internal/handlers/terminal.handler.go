@@ -15,6 +15,12 @@ func NewWsTerminal(terminalSvc *services.Terminal) *WsTerminal {
 	return &WsTerminal{terminalSvc}
 }
 
+// @Summary      Websocket to access terminal
+// @Tags         terminal
+// @Produce      json
+// @Param				 app_secret query string true "app secret authentication for access"
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /ws/terminal [get]
 func (h *WsTerminal) Handle(c *gin.Context) {
 	ws, err := ws.Upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
