@@ -18,6 +18,14 @@ func NewAuth(authSvc *services.Auth) *Auth {
 	return &Auth{authSvc}
 }
 
+// @Summary      Creates new account
+// @Description	 Create new account and ask [config.MAIL_OWNER] to register approval, user will be notified if account successfully review
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body	payloads.RequestSignUp	true	"data of new account"
+// @Success      201  		{object}  replylib.Envelope
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) SignUp(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -36,6 +44,14 @@ func (h *Auth) SignUp(c *gin.Context) {
 	rp.Success(nil).CreatedJSON()
 }
 
+// @Summary      Allow or deny sign up request
+// @Description	 Owner only allow or deny sign up request. Identified by app secret
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body	payloads.RequestSignUpApproval	true	"data of sign up request"
+// @Success      201  		{object}  replylib.Envelope{data=models.User}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) SignUpApproval(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -54,6 +70,13 @@ func (h *Auth) SignUpApproval(c *gin.Context) {
 	rp.Success(user).OkJSON()
 }
 
+// @Summary      Check sign up status
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body	payloads.RequestSignUpApprovalStatus	true "identity to check status"
+// @Success      201  		{object}  replylib.Envelope{data=payloads.ResponseSignUpApprovalStatus}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) SignUpApprovalStatus(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -72,6 +95,13 @@ func (h *Auth) SignUpApprovalStatus(c *gin.Context) {
 	rp.Success(res).OkJSON()
 }
 
+// @Summary      Sign in onto existing account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body	payloads.RequestSignIn	true	"sign in identity"
+// @Success      201  		{object}  replylib.Envelope{data=models.User}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) SignIn(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -90,12 +120,24 @@ func (h *Auth) SignIn(c *gin.Context) {
 	rp.Success(user).SetCookies(cookies...).OkJSON()
 }
 
+// @Summary      Sign out account for one device (request device). Have to sign in first
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      201  		{object}  replylib.Envelope
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) SignOut(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	cookies := h.authSvc.AttachContext(c).SignOut()
 	rp.Success(nil).SetCookies(cookies...).OkJSON()
 }
 
+// @Summary      Get signed in account information
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      201  		{object}  replylib.Envelope{data=models.User}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
 func (h *Auth) Me(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	user, err := h.authSvc.AttachContext(c).Me()
