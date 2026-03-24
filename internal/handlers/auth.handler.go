@@ -50,6 +50,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
+// @Param				 X-APP-SECRET header string true "app secret authentication for access"
 // @Param				 payload  body	payloads.RequestSignUpApproval	true	"data of sign up request"
 // @Success      200  		{object}  replylib.Envelope{data=models.User}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
