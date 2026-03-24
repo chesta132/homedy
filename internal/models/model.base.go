@@ -14,5 +14,5 @@ type Base struct {
 
 type BaseRecyclable struct {
 	Base
-	DeleteAt gorm.DeletedAt `json:"delete_at" gorm:"index" example:"2006-01-02T15:04:05Z07:00"`
+	DeleteAt gorm.DeletedAt `json:"delete_at" gorm:"index" example:"2006-01-02T15:04:05Z07:00" swaggertype:"string" format:"date"`
 }

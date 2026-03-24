@@ -13,8 +13,8 @@ type Pagination struct {
 }
 
 type Meta struct {
-	Status      string            `json:"status"`
-	Timestamp   time.Time         `json:"timestamp"`
+	Status      string            `json:"status" example:"SUCCESS"` // SUCCESS or ERROR
+	Timestamp   time.Time         `json:"timestamp" example:"1704067200"` // unix time
 	Pagination  *Pagination       `json:"pagination,omitempty"`
 	Information string            `json:"information,omitempty"`
 	Tokens      map[string]string `json:"tokens,omitempty"`
