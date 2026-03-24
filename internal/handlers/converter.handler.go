@@ -23,6 +23,15 @@ func NewConverter(convSvc *services.Converter) *Converter {
 	return &Converter{convSvc}
 }
 
+// @Summary      Convert multiple files and zip converted
+// @Tags         converter
+// @Accept       multipart/form-data
+// @Produce      json
+// @Produce			 application/zip
+// @Param				 payload  body	payloads.RequestConvertMultiple	true	"files and convert target"
+// @Success      200  		{file} 		binary "File type: zip"
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /convert/multiple [post]
 func (h *Converter) ConvertMultiple(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	svc := h.convSvc.AttachContext(c)
@@ -49,6 +58,15 @@ func (h *Converter) ConvertMultiple(c *gin.Context) {
 	}
 }
 
+// @Summary      Convert one file and response converted file
+// @Tags         converter
+// @Accept       multipart/form-data
+// @Produce      json
+// @Produce			 application/octet-stream
+// @Param				 payload  body	payloads.RequestConvertOne	true	"file and convert target"
+// @Success      200  		{file} 		binary "File type: convert target"
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /convert/single [post]
 func (h *Converter) ConvertOne(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	svc := h.convSvc.AttachContext(c)
