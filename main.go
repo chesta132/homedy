@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	_ "homedy/docs"
 	_ "homedy/internal/libs/ginlib"
 	_ "homedy/internal/libs/sambalib"
 	_ "homedy/internal/libs/validatorlib"
@@ -19,13 +20,23 @@ import (
 	"homedy/internal/routes"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+// gin-swagger middleware
+// swagger embed files
+//
 //go:embed ui/dist
 var frontendFiles embed.FS
 
+// @title			Homedy API
+// @description	This is an API used for manages home server (ubuntu/debian).
+// @version 1.0
+// @host		localhost:8080
+// @BasePath	/api
 func main() {
 	gormLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
@@ -57,6 +68,8 @@ func main() {
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterConverter(api.Group("/convert"))
+
+		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 		router.RegisterFrontend(frontendFiles, "ui/dist")
 	}

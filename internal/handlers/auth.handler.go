@@ -25,7 +25,8 @@ func NewAuth(authSvc *services.Auth) *Auth {
 // @Produce      json
 // @Param				 payload  body	payloads.RequestSignUp	true	"data of new account"
 // @Success      201  		{object}  replylib.Envelope
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/signup [post]
 func (h *Auth) SignUp(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -51,7 +52,8 @@ func (h *Auth) SignUp(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  body	payloads.RequestSignUpApproval	true	"data of sign up request"
 // @Success      201  		{object}  replylib.Envelope{data=models.User}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/signup/approval [patch]
 func (h *Auth) SignUpApproval(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -76,7 +78,8 @@ func (h *Auth) SignUpApproval(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  body	payloads.RequestSignUpApprovalStatus	true "identity to check status"
 // @Success      201  		{object}  replylib.Envelope{data=payloads.ResponseSignUpApprovalStatus}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/signup/approval-status [get]
 func (h *Auth) SignUpApprovalStatus(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -101,7 +104,8 @@ func (h *Auth) SignUpApprovalStatus(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  body	payloads.RequestSignIn	true	"sign in identity"
 // @Success      201  		{object}  replylib.Envelope{data=models.User}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/signin [post]
 func (h *Auth) SignIn(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -125,7 +129,8 @@ func (h *Auth) SignIn(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Success      201  		{object}  replylib.Envelope
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/signout [post]
 func (h *Auth) SignOut(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	cookies := h.authSvc.AttachContext(c).SignOut()
@@ -137,7 +142,8 @@ func (h *Auth) SignOut(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Success      201  		{object}  replylib.Envelope{data=models.User}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /auth/me [get]
 func (h *Auth) Me(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	user, err := h.authSvc.AttachContext(c).Me()
