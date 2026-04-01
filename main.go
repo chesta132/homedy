@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	_ "homedy/flags"
 
 	"homedy/config"
@@ -26,12 +25,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-// gin-swagger middleware
-// swagger embed files
-//
-//go:embed ui/dist
-var frontendFiles embed.FS
 
 // @title			Homedy API
 // @description	This is an API used for manages home server (ubuntu/debian).
@@ -79,8 +72,6 @@ func main() {
 		router.RegisterConverter(api.Group("/convert"))
 
 		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-		router.RegisterFrontend(frontendFiles, "ui/dist")
 	}
 
 	g.Run(":" + config.SERVER_PORT)
