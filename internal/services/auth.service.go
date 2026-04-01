@@ -8,7 +8,6 @@ import (
 	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/cryptolib"
 	"homedy/internal/libs/dblib"
-	"homedy/internal/libs/logger"
 	"homedy/internal/libs/mail"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models"
@@ -116,7 +115,6 @@ func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) error {
 func (s *ContextedAuth) SignUpApproval(payload payloads.RequestSignUpApproval) (*models.User, error) {
 	id, err := cryptolib.DecryptGCM([]byte(payload.Identifier), []byte(config.SIGNUP_IDENTIFIER_KEY))
 	if err != nil {
-		logger.Debug(payload.Identifier, logger.Fields("error", err))
 		return nil, &reply.ErrorPayload{
 			Code:    replylib.CodeBadRequest,
 			Message: "invalid identifier format",
