@@ -5,6 +5,7 @@ import (
 	"homedy/config"
 	"homedy/internal/libs/authlib"
 	"homedy/internal/libs/replylib"
+	"homedy/internal/libs/ws"
 	"homedy/internal/repos"
 	"net/http"
 	"time"
@@ -12,6 +13,7 @@ import (
 	adapter "github.com/chesta132/goreply/adapter/gin"
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 )
 
@@ -104,12 +106,15 @@ func (mw *Auth) Protected() gin.HandlerFunc {
 
 type secretGetter func(c *gin.Context) string
 
-func AppProtectQuery() secretGetter {
-	return func(c *gin.Context) string { return c.Query("app_secret") }
+func SecretGetterWs() secretGetter {
+	return func(c *gin.Context) string {
+		protocols := websocket.Subprotocols(c.Request)
+		return ws.GetSubprotocolValue(protocols, config.APP_SECRET_WS_SUBPROTOCOL_KEY)
+	}
 }
 
 func SecretGetterHeader() secretGetter {
-	return func(c *gin.Context) string { return c.GetHeader("X-APP-SECRET") }
+	return func(c *gin.Context) string { return c.GetHeader(config.APP_SECRET_HEADER_KEY) }
 }
 
 // App protect middleware compare [app_secret] in payload with [config.APP_SECRET]

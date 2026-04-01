@@ -36,6 +36,11 @@ const (
 	// uploads
 
 	LIMIT_UPLOAD_SIZE = 200 << 20 // 200MB per request
+
+	// app secret
+
+	APP_SECRET_WS_SUBPROTOCOL_KEY = "app-secret"
+	APP_SECRET_HEADER_KEY         = "X-APP-SECRET"
 )
 
 var (
