@@ -215,7 +215,7 @@ func (h *Samba) Backup(c *gin.Context) {
 // @Param				 X-APP-SECRET header string true "app secret authentication for access"
 // @Success      200  		{object}  replylib.Envelope{data=models.Shares} "all existing shares"
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /backup [post]
+// @Router			 /restore [post]
 func (h *Samba) Restore(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
