@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"homedy/internal/libs/ws"
 	"homedy/internal/services"
 
@@ -32,11 +33,26 @@ func (h *WsTerminal) Handle(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	defer ptmx.Close()
 
-	go h.terminalSvc.SendPTYOutput(ptmx, ws)
+	ctx, cancel := context.WithCancel(c.Request.Context())
+	defer cancel()
 
-	h.terminalSvc.InputToPTY(ptmx, ws)
+	defer func() {
+		ptmx.Close()
+		ws.Close()
+		cmd.Process.Kill()
+		cmd.Wait()
+	}()
 
-	cmd.Wait()
+	go func() {
+		h.terminalSvc.SendPTYOutput(ptmx, ws)
+		cancel()
+	}()
+
+	go func() {
+		h.terminalSvc.InputToPTY(ptmx, ws)
+		cancel()
+	}()
+
+	<-ctx.Done()
 }
