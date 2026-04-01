@@ -19,6 +19,7 @@ import (
 	"homedy/internal/repos"
 	"homedy/internal/routes"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -56,6 +57,14 @@ func main() {
 	}
 
 	g := gin.Default()
+	g.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{config.FRONTEND_URL},
+		AllowCredentials: true,
+		AllowWebSockets:  true,
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", config.APP_SECRET_HEADER_KEY, "Sec-WebSocket-Protocol"},
+		ExposeHeaders:    []string{"Sec-WebSocket-Protocol"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
 	api := g.Group("/api")
 	api.Use(middlewares.LimitTotalUploadSize(config.LIMIT_UPLOAD_SIZE))
 	amw := middlewares.NewAuth(repos.NewRevoke(db))
