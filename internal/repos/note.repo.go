@@ -3,7 +3,6 @@ package repos
 import (
 	"context"
 	"homedy/config"
-	"homedy/internal/libs/logger"
 	"homedy/internal/models"
 	"homedy/internal/models/payloads"
 
@@ -40,7 +39,6 @@ func (r *Note) GetUserIDByID(ctx context.Context, id string) (userID string, err
 
 func (r *Note) GetUserIDByRecycledID(ctx context.Context, id string) (userID string, err error) {
 	err = r.db.WithContext(ctx).Unscoped().Model(new(models.Note)).Select("UserID").Where("id = ? AND deleted_at IS NOT NULL", id).Pluck("user_id", &userID).Error
-	logger.Debug(userID)
 	if userID == "" && err == nil {
 		err = gorm.ErrRecordNotFound
 	}

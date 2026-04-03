@@ -26,8 +26,6 @@ type ContextedNote struct {
 	ctx context.Context
 }
 
-// TODO: add crypto for content and title column in note model
-
 func NewNote(noteRepo *repos.Note) *Note {
 	return &Note{noteRepo}
 }
@@ -97,8 +95,16 @@ func (s *ContextedNote) UpdateOne(payload payloads.RequestUpdateNote) (note *mod
 		noteRepo := s.noteRepo.WithContext(tx)
 
 		note = payload.ToNote()
+		if err = note.Encrypt(); err != nil {
+			return err
+		}
+
 		*note, err = noteRepo.UpdateAndGet(s.ctx, *note, "id = ?", payload.ID)
 		if err != nil {
+			return err
+		}
+
+		if err = note.Decrypt(); err != nil {
 			return err
 		}
 
