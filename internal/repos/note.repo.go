@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"homedy/internal/libs/logger"
 	"homedy/internal/models"
 
 	"gorm.io/gorm"
@@ -28,16 +29,34 @@ func (r *Note) WithContext(tx *gorm.DB) *Note {
 }
 
 func (r *Note) GetUserIDByID(ctx context.Context, id string) (userID string, err error) {
-	err = gorm.G[models.Note](r.db).Select("UserID").Where("id = ?", id).Scan(ctx, &userID)
+	err = r.db.WithContext(ctx).Select("UserID").Where("id = ?", id).Pluck("user_id", &userID).Error
+	if userID == "" && err == nil {
+		err = gorm.ErrRecordNotFound
+	}
+	return
+}
+
+func (r *Note) GetUserIDByRecycledID(ctx context.Context, id string) (userID string, err error) {
+	err = r.db.WithContext(ctx).Unscoped().Model(new(models.Note)).Select("UserID").Where("id = ? AND deleted_at IS NOT NULL", id).Pluck("user_id", &userID).Error
+	logger.Debug(userID)
+	if userID == "" && err == nil {
+		err = gorm.ErrRecordNotFound
+	}
 	return
 }
 
 func (r *Note) GetUserIDsByIDs(ctx context.Context, ids []string) (userID []string, err error) {
-	err = gorm.G[models.Note](r.db).Select("UserID").Where("id IN ?", ids).Scan(ctx, &userID)
+	err = r.db.WithContext(ctx).Select("UserID").Where("id IN ?", ids).Pluck("user_id", &userID).Error
+	if len(userID) == 0 && err == nil {
+		err = gorm.ErrRecordNotFound
+	}
 	return
 }
 
-func (r *Note) GetUserIDsByIDsUnscoped(ctx context.Context, ids []string) (userID []string, err error) {
-	err = gorm.G[models.Note](r.db.Unscoped()).Select("UserID").Where("id IN ?", ids).Scan(ctx, &userID)
+func (r *Note) GetUserIDsByRecycledIDs(ctx context.Context, ids []string) (userIDs []string, err error) {
+	err = r.db.WithContext(ctx).Unscoped().Model(new(models.Note)).Select("UserID").Where("id IN ? AND deleted_at IS NOT NULL", ids).Pluck("user_id", &userIDs).Error
+	if len(userIDs) == 0 && err == nil {
+		err = gorm.ErrRecordNotFound
+	}
 	return
 }

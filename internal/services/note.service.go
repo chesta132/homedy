@@ -161,7 +161,7 @@ func (s *ContextedNote) RestoreOne(payload payloads.RequestRestoreOneNote) (*mod
 		return nil, errors.New("middleware skipped")
 	}
 
-	noteUserID, err := s.noteRepo.GetUserIDByID(s.ctx, payload.ID)
+	noteUserID, err := s.noteRepo.GetUserIDByRecycledID(s.ctx, payload.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (s *ContextedNote) RestoreMany(payload payloads.RequestRestoreManyNote) ([]
 		return nil, errors.New("middleware skipped")
 	}
 
-	noteUserIDs, err := s.noteRepo.GetUserIDsByIDsUnscoped(s.ctx, payload.IDs)
+	noteUserIDs, err := s.noteRepo.GetUserIDsByRecycledIDs(s.ctx, payload.IDs)
 	if err != nil {
 		return nil, err
 	}
