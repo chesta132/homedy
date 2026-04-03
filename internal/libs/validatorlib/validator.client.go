@@ -19,6 +19,7 @@ func init() {
 
 	// register enum
 	Client.RegisterValidation("samba_bool", registEnumValidation(models.SambaBools))
+	Client.RegisterValidation("note_visibility", registEnumValidation(models.NoteVisibilities))
 
 	// register basic validator
 	Client.RegisterValidation("share_name", basicValidatorToValidatorFunc(ValidateShareName))
