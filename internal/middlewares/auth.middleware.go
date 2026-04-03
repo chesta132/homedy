@@ -135,8 +135,12 @@ func (mw *Auth) AppProtected(secretGetter secretGetter) gin.HandlerFunc {
 	}
 }
 
-func GetUserID(c *gin.Context) (string, bool) {
+// return [ErrMiddlewareSkipped] on error
+func GetUserID(c *gin.Context) (string, error) {
 	userIDIfc, _ := c.Get("userID")
 	userID, ok := userIDIfc.(string)
-	return userID, ok
+	if !ok {
+		return "", ErrMiddlewareSkipped
+	}
+	return userID, nil
 }

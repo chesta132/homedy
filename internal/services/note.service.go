@@ -2,8 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
-	"homedy/config"
+	"fmt"
 	"homedy/internal/libs/logger"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/middlewares"
@@ -27,7 +26,6 @@ type ContextedNote struct {
 	ctx context.Context
 }
 
-// TODO: refactor (DRY)
 // TODO: add crypto for content and title column in note model
 
 func NewNote(noteRepo *repos.Note) *Note {
@@ -38,21 +36,31 @@ func (s *Note) AttachContext(c *gin.Context) *ContextedNote {
 	return &ContextedNote{*s, c, c.Request.Context()}
 }
 
+func (s *Note) assertOwner(noteUserIDs []string, userID, action string) error {
+	if slices.ContainsFunc(noteUserIDs, func(id string) bool { return id != userID }) {
+		return &reply.ErrorPayload{
+			Code:    replylib.CodeForbidden,
+			Message: fmt.Sprintf("you can not %s", action),
+		}
+	}
+	return nil
+}
+
 func (s *ContextedNote) CreateOne(payload payloads.RequestCreateNote) (*models.Note, error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
 	note := payload.ToNote(userID)
-	err := s.noteRepo.Create(s.ctx, note)
+	err = s.noteRepo.Create(s.ctx, note)
 	return note, err
 }
 
 func (s *ContextedNote) GetOne(payload payloads.RequestGetOneNote) (*models.Note, error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
 	note, err := s.noteRepo.GetByID(s.ctx, payload.ID)
@@ -60,35 +68,29 @@ func (s *ContextedNote) GetOne(payload payloads.RequestGetOneNote) (*models.Note
 		return nil, err
 	}
 
-	if note.UserID != userID && note.Visibility != models.NotePublic {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeForbidden,
-			Message: "you can not read this note",
+	if note.Visibility != models.NotePublic {
+		err = s.assertOwner([]string{note.UserID}, userID, "read this note")
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	return &note, nil
 }
 
-func (s *ContextedNote) GetNotes(payload payloads.RequestGetManyNote) (notes []models.Note, err error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+func (s *ContextedNote) GetNotes(payload payloads.RequestGetManyNote) ([]models.Note, error) {
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
-	// config.LIMIT_RESOURCE_PER_PAGINATION + 1 to cursor pagination
-	query := s.noteRepo.DB().Where("user_id = ?", userID).Offset(payload.Offset).Limit(config.LIMIT_RESOURCE_PER_PAGINATION + 1)
-	if payload.Recycled {
-		query = query.Unscoped().Where("deleted_at != NULL")
-	}
-	err = query.Find(&notes).Error
-	return
+	return s.noteRepo.GetNotesWithPayload(userID, payload)
 }
 
 func (s *ContextedNote) UpdateOne(payload payloads.RequestUpdateNote) (note *models.Note, err error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
 	s.noteRepo.DB().Transaction(func(tx *gorm.DB) error {
@@ -100,11 +102,8 @@ func (s *ContextedNote) UpdateOne(payload payloads.RequestUpdateNote) (note *mod
 			return err
 		}
 
-		if note.UserID != userID {
-			err = &reply.ErrorPayload{
-				Code:    replylib.CodeForbidden,
-				Message: "you can not update this note",
-			}
+		err = s.assertOwner([]string{note.UserID}, userID, "update this note")
+		if err != nil {
 			return err
 		}
 
@@ -114,9 +113,9 @@ func (s *ContextedNote) UpdateOne(payload payloads.RequestUpdateNote) (note *mod
 }
 
 func (s *ContextedNote) DeleteOne(payload payloads.RequestDeleteOneNote) error {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return err
 	}
 
 	noteUserID, err := s.noteRepo.GetUserIDByID(s.ctx, payload.ID)
@@ -124,20 +123,18 @@ func (s *ContextedNote) DeleteOne(payload payloads.RequestDeleteOneNote) error {
 		return err
 	}
 
-	if noteUserID != userID {
-		return &reply.ErrorPayload{
-			Code:    replylib.CodeForbidden,
-			Message: "you can not delete this note",
-		}
+	err = s.assertOwner([]string{noteUserID}, userID, "delete this note")
+	if err != nil {
+		return err
 	}
 
 	return s.noteRepo.Archive(s.ctx, "id = ?", payload.ID)
 }
 
 func (s *ContextedNote) DeleteMany(payload payloads.RequestDeleteManyNote) (err error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return err
 	}
 
 	noteUserIDs, err := s.noteRepo.GetUserIDsByIDs(s.ctx, payload.IDs)
@@ -145,20 +142,18 @@ func (s *ContextedNote) DeleteMany(payload payloads.RequestDeleteManyNote) (err 
 		return
 	}
 
-	if slices.ContainsFunc(noteUserIDs, func(id string) bool { return id != userID }) {
-		return &reply.ErrorPayload{
-			Code:    replylib.CodeForbidden,
-			Message: "you can not delete these notes",
-		}
+	err = s.assertOwner(noteUserIDs, userID, "delete these notes")
+	if err != nil {
+		return err
 	}
 
 	return s.noteRepo.Archive(s.ctx, "id IN ?", payload.IDs)
 }
 
 func (s *ContextedNote) RestoreOne(payload payloads.RequestRestoreOneNote) (*models.Note, error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
 	noteUserID, err := s.noteRepo.GetUserIDByRecycledID(s.ctx, payload.ID)
@@ -166,11 +161,9 @@ func (s *ContextedNote) RestoreOne(payload payloads.RequestRestoreOneNote) (*mod
 		return nil, err
 	}
 
-	if noteUserID != userID {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeForbidden,
-			Message: "you can not restore this note",
-		}
+	err = s.assertOwner([]string{noteUserID}, userID, "restore this note")
+	if err != nil {
+		return nil, err
 	}
 
 	notes, err := s.noteRepo.RestoreAndGet(s.ctx, "id = ?", payload.ID)
@@ -187,9 +180,9 @@ func (s *ContextedNote) RestoreOne(payload payloads.RequestRestoreOneNote) (*mod
 }
 
 func (s *ContextedNote) RestoreMany(payload payloads.RequestRestoreManyNote) ([]models.Note, error) {
-	userID, ok := middlewares.GetUserID(s.c)
-	if !ok {
-		return nil, errors.New("middleware skipped")
+	userID, err := middlewares.GetUserID(s.c)
+	if err != nil {
+		return nil, err
 	}
 
 	noteUserIDs, err := s.noteRepo.GetUserIDsByRecycledIDs(s.ctx, payload.IDs)
@@ -197,11 +190,9 @@ func (s *ContextedNote) RestoreMany(payload payloads.RequestRestoreManyNote) ([]
 		return nil, err
 	}
 
-	if slices.ContainsFunc(noteUserIDs, func(id string) bool { return id != userID }) {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeForbidden,
-			Message: "you can not restore these notes",
-		}
+	err = s.assertOwner(noteUserIDs, userID, "restore these notes")
+	if err != nil {
+		return nil, err
 	}
 
 	return s.noteRepo.RestoreAndGet(s.ctx, "id IN ?", payload.IDs)

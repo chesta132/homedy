@@ -2,8 +2,10 @@ package repos
 
 import (
 	"context"
+	"homedy/config"
 	"homedy/internal/libs/logger"
 	"homedy/internal/models"
+	"homedy/internal/models/payloads"
 
 	"gorm.io/gorm"
 )
@@ -58,5 +60,15 @@ func (r *Note) GetUserIDsByRecycledIDs(ctx context.Context, ids []string) (userI
 	if len(userIDs) == 0 && err == nil {
 		err = gorm.ErrRecordNotFound
 	}
+	return
+}
+
+func (r *Note) GetNotesWithPayload(userID string, payload payloads.RequestGetManyNote) (notes []models.Note, err error) {
+	// config.LIMIT_RESOURCE_PER_PAGINATION + 1 to cursor pagination
+	query := r.db.Where("user_id = ?", userID).Offset(payload.Offset).Limit(config.LIMIT_RESOURCE_PER_PAGINATION + 1)
+	if payload.Recycled {
+		query = query.Unscoped().Where("deleted_at IS NOT NULL")
+	}
+	err = query.Find(&notes).Error
 	return
 }
