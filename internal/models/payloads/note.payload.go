@@ -5,7 +5,7 @@ import "homedy/internal/models"
 type RequestCreateNote struct {
 	Title      string                `json:"title" validate:"required"`
 	Content    string                `json:"content" validate:"required"`
-	Visibility models.NoteVisibility `json:"visibility" validate:"note_visibility"`
+	Visibility models.NoteVisibility `json:"visibility" validate:"required,note_visibility"`
 }
 
 func (p *RequestCreateNote) ToNote(userID string) *models.Note {
@@ -38,7 +38,7 @@ type RequestDeleteOneNote struct {
 }
 
 type RequestDeleteManyNote struct {
-	IDs []string `json:"ids" validate:"required,dive,uuid4"`
+	IDs []string `json:"ids" validate:"required,min=1,dive,uuid4"`
 }
 
 type RequestRestoreOneNote struct {
@@ -46,5 +46,5 @@ type RequestRestoreOneNote struct {
 }
 
 type RequestRestoreManyNote struct {
-	IDs []string `json:"ids" validate:"required,dive,uuid4"`
+	IDs []string `json:"ids" validate:"required,min=1,dive,uuid4"`
 }
