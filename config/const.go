@@ -25,9 +25,10 @@ const (
 	REFRESH_TOKEN_KEY = "refresh_token"
 	ACCESS_TOKEN_KEY  = "access_token"
 
-	// query
+	// batch
 
-	MAX_CREATE_BATCH = 100 // max data per batch when inserting multiple records
+	MAX_CREATE_BATCH              = 100 // max data per batch when inserting multiple records
+	LIMIT_RESOURCE_PER_PAGINATION = 100
 
 	// terminal remote
 

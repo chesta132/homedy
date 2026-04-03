@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type archivable[T any] struct {
@@ -21,6 +22,19 @@ func (r *archivable[T]) Archive(ctx context.Context, where any, args ...any) (er
 func (r *archivable[T]) Restore(ctx context.Context, where any, args ...any) (err error) {
 	result, err := gorm.G[T](r.db.Unscoped()).Where(where, args...).Update(ctx, "deleted_at", nil)
 	if result == 0 && err == nil {
+		err = gorm.ErrRecordNotFound
+	}
+	return
+}
+
+func (r *archivable[T]) RestoreAndGet(ctx context.Context, where any, args ...any) (result []T, err error) {
+	tx := r.db.Unscoped().Model(new(T)).WithContext(ctx).
+		Clauses(clause.Returning{}).
+		Where(where, args...).
+		Update("deleted_at", nil).Scan(&result)
+
+	err = tx.Error
+	if tx.RowsAffected == 0 && err == nil {
 		err = gorm.ErrRecordNotFound
 	}
 	return

@@ -6,6 +6,7 @@ type Repos struct {
 	db     *gorm.DB
 	user   *User
 	revoke *Revoke
+	note   *Note
 }
 
 func New(db *gorm.DB) *Repos {
@@ -24,4 +25,11 @@ func (r *Repos) Revoke() *Revoke {
 		r.revoke = NewRevoke(r.db)
 	}
 	return r.revoke
+}
+
+func (r *Repos) Note() *Note {
+	if r.note == nil {
+		r.note = NewNote(r.db)
+	}
+	return r.note
 }

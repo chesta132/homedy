@@ -134,3 +134,9 @@ func (mw *Auth) AppProtected(secretGetter secretGetter) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func GetUserID(c *gin.Context) (string, bool) {
+	userIDIfc, _ := c.Get("userID")
+	userID, ok := userIDIfc.(string)
+	return userID, ok
+}

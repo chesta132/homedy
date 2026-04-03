@@ -83,7 +83,13 @@ func (r *update[T]) UpdateByID(ctx context.Context, id string, u T) error {
 }
 
 func (r *update[T]) UpdateAndGet(ctx context.Context, u T, where any, args ...any) (result T, err error) {
-	err = r.db.WithContext(ctx).Model(new(T)).Clauses(clause.Returning{}).Where(where, args...).Updates(u).Scan(&result).Error
+	res := r.db.WithContext(ctx).Model(new(T)).Clauses(clause.Returning{}).Where(where, args...).Updates(u).Scan(&result)
+	if res.Error != nil {
+		return result, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return result, gorm.ErrRecordNotFound
+	}
 	return
 }
 

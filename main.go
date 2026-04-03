@@ -70,6 +70,7 @@ func main() {
 		router.RegisterWebsocket(api.Group("/ws"))
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterConverter(api.Group("/convert"))
+		router.RegisterNote(api.Group("/notes"))
 
 		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
