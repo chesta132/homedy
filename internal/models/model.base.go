@@ -12,11 +12,11 @@ type BaseID struct {
 
 type Base struct {
 	BaseID
-	CreatedAt time.Time `json:"created_at,omitzero" gorm:"autoCreateTime;not null" example:"2006-01-02T15:04:05Z07:00"`
-	UpdatedAt time.Time `json:"updated_at,omitzero" gorm:"autoUpdateTime;not null" example:"2006-01-02T15:04:05Z07:00"`
+	CreatedAt time.Time `json:"createdAt,omitzero" gorm:"autoCreateTime;not null" example:"2006-01-02T15:04:05Z07:00"`
+	UpdatedAt time.Time `json:"updatedAt,omitzero" gorm:"autoUpdateTime;not null" example:"2006-01-02T15:04:05Z07:00"`
 }
 
 type BaseRecyclable struct {
 	Base
-	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index" example:"2006-01-02T15:04:05Z07:00" swaggertype:"string" format:"date"`
+	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index" example:"2006-01-02T15:04:05Z07:00" swaggertype:"string" format:"date"`
 }

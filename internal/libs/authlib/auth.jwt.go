@@ -10,9 +10,9 @@ import (
 )
 
 type Claims struct {
-	UserID     string     `json:"user_id"`
-	RotateAt   *time.Time `json:"rotate_at"`
-	RememberMe bool       `json:"remember_me"`
+	UserID     string     `json:"userId"`
+	RotateAt   *time.Time `json:"rotateAt"`
+	RememberMe bool       `json:"rememberMe"`
 	jwt.RegisteredClaims
 }
 

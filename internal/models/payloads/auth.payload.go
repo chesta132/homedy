@@ -20,7 +20,7 @@ type RequestSignIn struct {
 	// email or username
 	Identifier string `json:"identifier" validate:"required" example:"chesta_ardiona"`
 	Password   string `json:"password" validate:"required,password" example:"YourPassword123"`
-	RememberMe bool   `json:"remember_me"`
+	RememberMe bool   `json:"rememberMe"`
 }
 
 type ApprovalAction string

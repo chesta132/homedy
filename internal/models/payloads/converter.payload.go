@@ -31,12 +31,12 @@ func validateFileAndConvertTarget(file *multipart.FileHeader, convertTo string, 
 
 type RequestConvertMultiple struct {
 	Files     []*multipart.FileHeader `form:"files" validate:"required,dive,required"`
-	ConvertTo []string                `form:"convert_to" validate:"required,dive,required"`
+	ConvertTo []string                `form:"convertTo" validate:"required,dive,required"`
 }
 
 func (p *RequestConvertMultiple) ValidateStruct(sl validator.StructLevel) {
 	if len(p.Files) != len(p.ConvertTo) {
-		sl.ReportError(p.ConvertTo, "convert_to", "ConvertTo", "len_equals", "files")
+		sl.ReportError(p.ConvertTo, "convertTo", "ConvertTo", "len_equals", "files")
 		return
 	}
 
@@ -47,7 +47,7 @@ func (p *RequestConvertMultiple) ValidateStruct(sl validator.StructLevel) {
 
 type RequestConvertOne struct {
 	File      *multipart.FileHeader `form:"file" validate:"required"`
-	ConvertTo string                `form:"convert_to" validate:"required"`
+	ConvertTo string                `form:"convertTo" validate:"required"`
 }
 
 func (p *RequestConvertOne) ValidateStruct(sl validator.StructLevel) {

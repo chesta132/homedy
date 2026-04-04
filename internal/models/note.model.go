@@ -22,7 +22,7 @@ type Note struct {
 	Content    string         `json:"content" gorm:"not null"`
 	Visibility NoteVisibility `json:"visibility" gorm:"not null,default:'private'"`
 
-	UserID string `json:"user_id"`
+	UserID string `json:"userId"`
 	User   User   `json:"user,omitzero"`
 }
 
