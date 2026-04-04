@@ -1,5 +1,45 @@
 basePath: /api
 definitions:
+  models.BaseID:
+    properties:
+      id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+    type: object
+  models.Note:
+    properties:
+      content:
+        type: string
+      createdAt:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      deletedAt:
+        example: 2006-01-02T15:04:05Z07:00
+        format: date
+        type: string
+      id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      title:
+        type: string
+      updatedAt:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userId:
+        type: string
+      visibility:
+        $ref: '#/definitions/models.NoteVisibility'
+    type: object
+  models.NoteVisibility:
+    enum:
+    - public
+    - private
+    type: string
+    x-enum-varnames:
+    - NotePublic
+    - NotePrivate
   models.SambaBool:
     enum:
     - "yes"
@@ -10,7 +50,7 @@ definitions:
     - "NO"
   models.Share:
     properties:
-      admin_users:
+      adminUsers:
         example:
         - root
         items:
@@ -32,11 +72,11 @@ definitions:
         items:
           type: integer
         type: array
-      read_only:
+      readOnly:
         allOf:
         - $ref: '#/definitions/models.SambaBool'
         example: "no"
-      valid_users:
+      validUsers:
         example:
         - guest
         - chesta
@@ -45,12 +85,12 @@ definitions:
         minItems: 1
         type: array
     required:
-    - admin_users
+    - adminUsers
     - browsable
     - path
     - permissions
-    - read_only
-    - valid_users
+    - readOnly
+    - validUsers
     type: object
   models.ShareMap:
     additionalProperties:
@@ -60,12 +100,20 @@ definitions:
     additionalProperties:
       $ref: '#/definitions/models.Share'
     type: object
+  models.Sort:
+    enum:
+    - asc
+    - desc
+    type: string
+    x-enum-varnames:
+    - ASC
+    - DESC
   models.User:
     properties:
-      created_at:
+      createdAt:
         example: 2006-01-02T15:04:05Z07:00
         type: string
-      delete_at:
+      deletedAt:
         example: 2006-01-02T15:04:05Z07:00
         format: date
         type: string
@@ -77,7 +125,7 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/models.UserStatus'
-      updated_at:
+      updatedAt:
         example: 2006-01-02T15:04:05Z07:00
         type: string
       username:
@@ -122,7 +170,7 @@ definitions:
     - ApprovalDenied
   payloads.RequestConvertMultiple:
     properties:
-      convert_to:
+      convertTo:
         items:
           type: string
         type: array
@@ -131,22 +179,35 @@ definitions:
           $ref: '#/definitions/multipart.FileHeader'
         type: array
     required:
-    - convert_to
+    - convertTo
     - files
     type: object
   payloads.RequestConvertOne:
     properties:
-      convert_to:
+      convertTo:
         type: string
       file:
         $ref: '#/definitions/multipart.FileHeader'
     required:
-    - convert_to
+    - convertTo
     - file
+    type: object
+  payloads.RequestCreateNote:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+      visibility:
+        $ref: '#/definitions/models.NoteVisibility'
+    required:
+    - content
+    - title
+    - visibility
     type: object
   payloads.RequestCreateShare:
     properties:
-      admin_users:
+      adminUsers:
         example:
         - root
         items:
@@ -171,11 +232,11 @@ definitions:
         items:
           type: integer
         type: array
-      read_only:
+      readOnly:
         allOf:
         - $ref: '#/definitions/models.SambaBool'
         example: "no"
-      valid_users:
+      validUsers:
         example:
         - guest
         - chesta
@@ -184,13 +245,44 @@ definitions:
         minItems: 1
         type: array
     required:
-    - admin_users
+    - adminUsers
     - browsable
     - name
     - path
     - permissions
-    - read_only
-    - valid_users
+    - readOnly
+    - validUsers
+    type: object
+  payloads.RequestDeleteManyNote:
+    properties:
+      ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - ids
+    type: object
+  payloads.RequestGetOneNote:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  payloads.RequestRestoreManyNote:
+    properties:
+      ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      sort:
+        allOf:
+        - $ref: '#/definitions/models.Sort'
+        description: default = desc
+    required:
+    - ids
     type: object
   payloads.RequestSignIn:
     properties:
@@ -201,7 +293,7 @@ definitions:
       password:
         example: YourPassword123
         type: string
-      remember_me:
+      rememberMe:
         type: boolean
     required:
     - identifier
@@ -340,11 +432,11 @@ definitions:
       current:
         description: current offset
         type: integer
-      has_next:
+      hasHext:
         description: true if data more than replied
         type: boolean
       next:
-        description: if has_next is false, next is 0
+        description: if hasHext is false, next is 0
         type: integer
     type: object
   replylib.status:
@@ -604,14 +696,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: all existing shares
+          description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/replylib.Envelope'
-            - properties:
-                data:
-                  $ref: '#/definitions/models.Shares'
-              type: object
+            $ref: '#/definitions/replylib.Envelope'
         default:
           description: ""
           schema:
@@ -626,7 +713,7 @@ paths:
                         $ref: '#/definitions/replylib.CodeError'
                     type: object
               type: object
-      summary: Restore samba configuration and shares from latest backup
+      summary: Backup samba configuration and shares and replace previous backup
       tags:
       - folder-sharing
   /config:
@@ -782,6 +869,355 @@ paths:
       summary: Convert one file and response converted file
       tags:
       - converter
+  /notes:
+    delete:
+      parameters:
+      - description: param of notes` identification
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestDeleteManyNote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data is null
+          schema:
+            $ref: '#/definitions/replylib.Envelope'
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Soft delete one client's existing notes
+      tags:
+      - note
+    get:
+      parameters:
+      - in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - in: query
+        name: recycled
+        type: boolean
+      - description: default = desc
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort
+        type: string
+        x-enum-varnames:
+        - ASC
+        - DESC
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Note'
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get all client's existing notes with query
+      tags:
+      - note
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: new note data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestCreateNote'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Note'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Create one new note
+      tags:
+      - note
+  /notes/{id}:
+    delete:
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: deleted id in server
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.BaseID'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Soft delete one client's existing note
+      tags:
+      - note
+    get:
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Note'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get client's existing notes by id
+      tags:
+      - note
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: updated note
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestGetOneNote'
+      - example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        in: path
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: updated note from server
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Note'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Update client's existing note
+      tags:
+      - note
+  /notes/restore:
+    patch:
+      parameters:
+      - description: param of notes` identification
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestRestoreManyNote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: restored notes data
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Note'
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Restore existing share by name
+      tags:
+      - note
+  /notes/restore/{id}:
+    patch:
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: restored note data
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Note'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Restore one client's existing note
+      tags:
+      - note
+  /restore:
+    post:
+      parameters:
+      - description: app secret authentication for access
+        in: header
+        name: X-APP-SECRET
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: all existing shares
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Shares'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Restore samba configuration and shares from latest backup
+      tags:
+      - folder-sharing
   /samba:
     get:
       produces:
@@ -980,10 +1416,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: 'File type: convert target'
-          schema:
-            type: file
         default:
           description: ""
           schema:

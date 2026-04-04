@@ -436,7 +436,7 @@ const docTemplate = `{
                 "tags": [
                     "folder-sharing"
                 ],
-                "summary": "Restore samba configuration and shares from latest backup",
+                "summary": "Backup samba configuration and shares and replace previous backup",
                 "parameters": [
                     {
                         "type": "string",
@@ -448,21 +448,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "all existing shares",
+                        "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/replylib.Envelope"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.Shares"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/replylib.Envelope"
                         }
                     },
                     "default": {
@@ -741,6 +729,657 @@ const docTemplate = `{
                         "description": "File type: convert target",
                         "schema": {
                             "type": "file"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notes": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Get all client's existing notes with query",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "recycled",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "description": "default = desc",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Note"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Create one new note",
+                "parameters": [
+                    {
+                        "description": "new note data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestCreateNote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Note"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Soft delete one client's existing notes",
+                "parameters": [
+                    {
+                        "description": "param of notes` + "`" + ` identification",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestDeleteManyNote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data is null",
+                        "schema": {
+                            "$ref": "#/definitions/replylib.Envelope"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/restore": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Restore existing share by name",
+                "parameters": [
+                    {
+                        "description": "param of notes` + "`" + ` identification",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestRestoreManyNote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "restored notes data",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Note"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/restore/{id}": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Restore one client's existing note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "restored note data",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Note"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Get client's existing notes by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Note"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Update client's existing note",
+                "parameters": [
+                    {
+                        "description": "updated note",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestGetOneNote"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6",
+                        "name": "id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "updated note from server",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Note"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "note"
+                ],
+                "summary": "Soft delete one client's existing note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deleted id in server",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.BaseID"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/restore": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "folder-sharing"
+                ],
+                "summary": "Restore samba configuration and shares from latest backup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app secret authentication for access",
+                        "name": "X-APP-SECRET",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all existing shares",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "default": {
@@ -1147,12 +1786,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "File type: convert target",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -1188,6 +1821,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.BaseID": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
+                }
+            }
+        },
+        "models.Note": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "deletedAt": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "visibility": {
+                    "$ref": "#/definitions/models.NoteVisibility"
+                }
+            }
+        },
+        "models.NoteVisibility": {
+            "type": "string",
+            "enum": [
+                "public",
+                "private"
+            ],
+            "x-enum-varnames": [
+                "NotePublic",
+                "NotePrivate"
+            ]
+        },
         "models.SambaBool": {
             "type": "string",
             "enum": [
@@ -1202,15 +1892,15 @@ const docTemplate = `{
         "models.Share": {
             "type": "object",
             "required": [
-                "admin_users",
+                "adminUsers",
                 "browsable",
                 "path",
                 "permissions",
-                "read_only",
-                "valid_users"
+                "readOnly",
+                "validUsers"
             ],
             "properties": {
-                "admin_users": {
+                "adminUsers": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -1243,7 +1933,7 @@ const docTemplate = `{
                         7
                     ]
                 },
-                "read_only": {
+                "readOnly": {
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.SambaBool"
@@ -1251,7 +1941,7 @@ const docTemplate = `{
                     ],
                     "example": "no"
                 },
-                "valid_users": {
+                "validUsers": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -1276,14 +1966,25 @@ const docTemplate = `{
                 "$ref": "#/definitions/models.Share"
             }
         },
+        "models.Sort": {
+            "type": "string",
+            "enum": [
+                "asc",
+                "desc"
+            ],
+            "x-enum-varnames": [
+                "ASC",
+                "DESC"
+            ]
+        },
         "models.User": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "createdAt": {
                     "type": "string",
                     "example": "2006-01-02T15:04:05Z07:00"
                 },
-                "delete_at": {
+                "deletedAt": {
                     "type": "string",
                     "format": "date",
                     "example": "2006-01-02T15:04:05Z07:00"
@@ -1299,7 +2000,7 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/models.UserStatus"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "string",
                     "example": "2006-01-02T15:04:05Z07:00"
                 },
@@ -1362,11 +2063,11 @@ const docTemplate = `{
         "payloads.RequestConvertMultiple": {
             "type": "object",
             "required": [
-                "convert_to",
+                "convertTo",
                 "files"
             ],
             "properties": {
-                "convert_to": {
+                "convertTo": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1383,11 +2084,11 @@ const docTemplate = `{
         "payloads.RequestConvertOne": {
             "type": "object",
             "required": [
-                "convert_to",
+                "convertTo",
                 "file"
             ],
             "properties": {
-                "convert_to": {
+                "convertTo": {
                     "type": "string"
                 },
                 "file": {
@@ -1395,19 +2096,38 @@ const docTemplate = `{
                 }
             }
         },
+        "payloads.RequestCreateNote": {
+            "type": "object",
+            "required": [
+                "content",
+                "title",
+                "visibility"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "visibility": {
+                    "$ref": "#/definitions/models.NoteVisibility"
+                }
+            }
+        },
         "payloads.RequestCreateShare": {
             "type": "object",
             "required": [
-                "admin_users",
+                "adminUsers",
                 "browsable",
                 "name",
                 "path",
                 "permissions",
-                "read_only",
-                "valid_users"
+                "readOnly",
+                "validUsers"
             ],
             "properties": {
-                "admin_users": {
+                "adminUsers": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -1444,7 +2164,7 @@ const docTemplate = `{
                         7
                     ]
                 },
-                "read_only": {
+                "readOnly": {
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.SambaBool"
@@ -1452,7 +2172,7 @@ const docTemplate = `{
                     ],
                     "example": "no"
                 },
-                "valid_users": {
+                "validUsers": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -1461,6 +2181,55 @@ const docTemplate = `{
                     "example": [
                         "guest",
                         "chesta"
+                    ]
+                }
+            }
+        },
+        "payloads.RequestDeleteManyNote": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "payloads.RequestGetOneNote": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestRestoreManyNote": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sort": {
+                    "description": "default = desc",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Sort"
+                        }
                     ]
                 }
             }
@@ -1481,7 +2250,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "YourPassword123"
                 },
-                "remember_me": {
+                "rememberMe": {
                     "type": "boolean"
                 }
             }
@@ -1669,12 +2438,12 @@ const docTemplate = `{
                     "description": "current offset",
                     "type": "integer"
                 },
-                "has_next": {
+                "hasHext": {
                     "description": "true if data more than replied",
                     "type": "boolean"
                 },
                 "next": {
-                    "description": "if has_next is false, next is 0",
+                    "description": "if hasHext is false, next is 0",
                     "type": "integer"
                 }
             }

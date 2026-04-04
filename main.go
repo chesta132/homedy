@@ -62,6 +62,10 @@ func main() {
 	api.Use(middlewares.LimitTotalUploadSize(config.LIMIT_UPLOAD_SIZE))
 	amw := middlewares.NewAuth(repos.NewRevoke(db))
 
+	if config.IsEnvDev() {
+		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+
 	{
 		router := routes.New(g, db, repos.New(db))
 		router.RegisterAuth(api.Group("/auth"))
@@ -72,7 +76,6 @@ func main() {
 		router.RegisterConverter(api.Group("/convert"))
 		router.RegisterNote(api.Group("/notes"))
 
-		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	g.Run(":" + config.SERVER_PORT)

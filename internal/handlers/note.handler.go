@@ -98,7 +98,7 @@ func (h *Note) GetOne(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  body	payloads.RequestGetOneNote	true	"updated note"
 // @Param				 param		path	models.BaseID	true "param of note's identification"
-// @Success      200  		{object}  replylib.Envelope{data=models.Notes} "updated note from server"
+// @Success      200  		{object}  replylib.Envelope{data=models.Note} "updated note from server"
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
 // @Router			 /notes/{id} [put]
 func (h *Note) UpdateOne(c *gin.Context) {
@@ -200,7 +200,7 @@ func (h *Note) RestoreOne(c *gin.Context) {
 func (h *Note) RestoreMany(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := ginlib.BindAndValidate[payloads.RequestRestoreManyNote](c.ShouldBindJSON)
+	payload, err := ginlib.BindAndValidate[payloads.RequestRestoreManyNote](c.ShouldBindJSON, c.ShouldBindQuery)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
