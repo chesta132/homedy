@@ -30,7 +30,7 @@ func (r *Note) WithContext(tx *gorm.DB) *Note {
 }
 
 func (r *Note) GetUserIDByID(ctx context.Context, id string) (userID string, err error) {
-	err = r.db.WithContext(ctx).Select("UserID").Where("id = ?", id).Pluck("user_id", &userID).Error
+	err = r.db.WithContext(ctx).Model(new(models.Note)).Select("UserID").Where("id = ?", id).Pluck("user_id", &userID).Error
 	if userID == "" && err == nil {
 		err = gorm.ErrRecordNotFound
 	}
@@ -46,7 +46,7 @@ func (r *Note) GetUserIDByRecycledID(ctx context.Context, id string) (userID str
 }
 
 func (r *Note) GetUserIDsByIDs(ctx context.Context, ids []string) (userID []string, err error) {
-	err = r.db.WithContext(ctx).Select("UserID").Where("id IN ?", ids).Pluck("user_id", &userID).Error
+	err = r.db.WithContext(ctx).Model(new(models.Note)).Select("UserID").Where("id IN ?", ids).Pluck("user_id", &userID).Error
 	if len(userID) == 0 && err == nil {
 		err = gorm.ErrRecordNotFound
 	}
@@ -63,7 +63,7 @@ func (r *Note) GetUserIDsByRecycledIDs(ctx context.Context, ids []string) (userI
 
 func (r *Note) GetNotesWithPayload(userID string, payload payloads.RequestGetManyNote) (notes []models.Note, err error) {
 	// config.LIMIT_RESOURCE_PER_PAGINATION + 1 to cursor pagination
-	query := r.db.Where("user_id = ?", userID).Offset(payload.Offset).Limit(config.LIMIT_RESOURCE_PER_PAGINATION + 1)
+	query := r.db.Model(new(models.Note)).Where("user_id = ?", userID).Offset(payload.Offset).Limit(config.LIMIT_RESOURCE_PER_PAGINATION + 1)
 	if payload.Recycled {
 		query = query.Unscoped().Where("deleted_at IS NOT NULL")
 	}
