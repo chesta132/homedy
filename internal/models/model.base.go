@@ -20,3 +20,12 @@ type BaseRecyclable struct {
 	Base
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index" example:"2006-01-02T15:04:05Z07:00" swaggertype:"string" format:"date"`
 }
+
+type Sort string
+
+const (
+	ASC  Sort = "asc"
+	DESC Sort = "desc"
+)
+
+var Sorts = []Sort{ASC, DESC}

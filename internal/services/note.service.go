@@ -82,7 +82,11 @@ func (s *ContextedNote) GetNotes(payload payloads.RequestGetManyNote) ([]models.
 		return nil, err
 	}
 
-	return s.noteRepo.GetNotesWithPayload(userID, payload)
+	if payload.Sort == "" {
+		payload.Sort = models.DESC
+	}
+
+	return s.noteRepo.GetNotesWithPayload(s.ctx, userID, payload)
 }
 
 func (s *ContextedNote) UpdateOne(payload payloads.RequestUpdateNote) (note *models.Note, err error) {
@@ -201,5 +205,9 @@ func (s *ContextedNote) RestoreMany(payload payloads.RequestRestoreManyNote) ([]
 		return nil, err
 	}
 
-	return s.noteRepo.RestoreAndGet(s.ctx, "id IN ?", payload.IDs)
+	if payload.Sort == "" {
+		payload.Sort = models.DESC
+	}
+
+	return s.noteRepo.RestoreNotesWithPayload(s.ctx, payload)
 }

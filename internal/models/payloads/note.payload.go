@@ -29,8 +29,9 @@ type RequestGetOneNote struct {
 }
 
 type RequestGetManyNote struct {
-	Offset   int  `form:"offset" validate:"omitempty,min=0"`
-	Recycled bool `form:"recycled"`
+	Offset   int    `form:"offset" validate:"omitempty,min=0"`
+	Recycled bool   `form:"recycled"`
+	Sort     models.Sort `form:"sort" validate:"omitempty,model_sort"` // default = desc
 }
 
 type RequestDeleteOneNote struct {
@@ -46,5 +47,6 @@ type RequestRestoreOneNote struct {
 }
 
 type RequestRestoreManyNote struct {
-	IDs []string `json:"ids" validate:"required,min=1,dive,uuid4"`
+	IDs  []string `json:"ids" validate:"required,min=1,dive,uuid4"`
+	Sort models.Sort   `form:"sort" validate:"omitempty,model_sort"` // default = desc
 }

@@ -30,6 +30,7 @@ var translateErrorMap = map[string]translator{
 	"convert_pair":     convertPair,
 	"size_limit":       SizeLimit,
 	"note_visibility":  createEnum(models.NoteVisibilities),
+	"model_sort":       createEnum(models.Sorts),
 }
 
 func email(fieldName string, err validator.FieldError) string {
