@@ -39,7 +39,7 @@ const (
 
 type Pagination struct {
 	Current int  `json:"current"` // current offset
-	HasNext bool `json:"hasHext"` // true if data more than replied
+	HasNext bool `json:"hasNext"` // true if data more than replied
 	Next    int  `json:"next"`    // if hasHext is false, next is 0
 }
 
