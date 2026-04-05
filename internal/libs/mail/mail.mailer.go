@@ -18,7 +18,7 @@ func NewMailer(host, user, pass string, port int) *Mailer {
 }
 
 func NewAppMailer() *Mailer {
-	return NewMailer(config.MAIL_HOST, config.MAIL_USER, config.MAIL_PASS, 587 /* 587 = port gmail smtp */)
+	return NewMailer(config.MAIL_HOST, config.MAIL_USER, config.MAIL_PASS, 587 /* 587 = TLS */)
 }
 
 func (m *Mailer) Dialer() *gomail.Dialer {
