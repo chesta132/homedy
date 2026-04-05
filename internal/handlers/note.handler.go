@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"homedy/config"
 	"homedy/internal/libs/ginlib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/models"
@@ -49,7 +50,7 @@ func (h *Note) CreateOne(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  query	payloads.RequestGetManyNote	true	"get many option"
 // @Success      200  		{object}  replylib.Envelope{data=[]models.Note}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError,meta={replylib.Pagination}}}
 // @Router			 /notes [get]
 func (h *Note) GetMany(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
@@ -65,7 +66,7 @@ func (h *Note) GetMany(c *gin.Context) {
 		replylib.HandleError(err, rp)
 		return
 	}
-	rp.Success(notes).OkJSON()
+	rp.Success(notes).PaginateCursor(config.LIMIT_RESOURCE_PER_PAGINATION, payload.Offset).OkJSON()
 }
 
 // @Summary      Get client's existing notes by id
