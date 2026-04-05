@@ -182,6 +182,7 @@ func (s *ContextedNote) RestoreOne(payload payloads.RequestRestoreOneNote) (*mod
 	}
 
 	if len(notes) > 0 {
+		notes[0].Decrypt()
 		return &notes[0], nil
 	}
 
