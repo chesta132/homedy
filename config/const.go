@@ -28,7 +28,7 @@ const (
 	// batch
 
 	MAX_CREATE_BATCH              = 100 // max data per batch when inserting multiple records
-	LIMIT_RESOURCE_PER_PAGINATION = 100
+	LIMIT_RESOURCE_PER_PAGINATION = 40
 
 	// terminal remote
 
