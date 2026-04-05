@@ -69,7 +69,7 @@ func (r *Note) GetNotesWithPayload(ctx context.Context, userID string, payload p
 		// config.LIMIT_RESOURCE_PER_PAGINATION + 1 to cursor pagination
 		Offset(payload.Offset).Limit(config.LIMIT_RESOURCE_PER_PAGINATION + 1).
 		// safe as long as payload.Sort is validated
-		Order(fmt.Sprintf("updated_at %s", payload.Sort))
+		Order(fmt.Sprintf("updated_at %s, id %s", payload.Sort, payload.Sort))
 	if payload.Recycled {
 		query = query.Unscoped().Where("deleted_at IS NOT NULL")
 	}
@@ -81,7 +81,7 @@ func (r *Note) GetNotesWithPayload(ctx context.Context, userID string, payload p
 func (r *Note) RestoreNotesWithPayload(ctx context.Context, payload payloads.RequestRestoreManyNote) (notes []models.Note, err error) {
 	tx := r.db.WithContext(ctx).Unscoped().Model(new(models.Note)).
 		Clauses(clause.Returning{}).
-		Order(fmt.Sprintf("updated_at %s", payload.Sort)).
+		Order(fmt.Sprintf("updated_at %s, id %s", payload.Sort, payload.Sort)).
 		Where("id IN ?", payload.IDs).
 		Update("deleted_at", nil).Scan(&notes)
 	notes = slicelib.Map(notes, func(idx int, note models.Note) models.Note { note.Decrypt(); return note })
