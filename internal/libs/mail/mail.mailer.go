@@ -51,6 +51,6 @@ func (m *Mailer) Send(to, subject, html string) error {
 // start a message and set base headers
 func (m *Mailer) Start() *gomail.Message {
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", m.dialer.Username)
+	msg.SetHeader("From", config.MAIL_FROM)
 	return msg
 }
