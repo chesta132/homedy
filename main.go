@@ -75,6 +75,7 @@ func main() {
 		router.RegisterSamba(api.Group("/samba"))
 		router.RegisterConverter(api.Group("/convert"))
 		router.RegisterNote(api.Group("/notes"))
+		router.RegisterUser(api.Group("/users"))
 
 	}
 
