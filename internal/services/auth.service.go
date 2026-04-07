@@ -81,35 +81,41 @@ func (s *Auth) sendSignUpApprovalReviewed(user models.User, payload payloads.Req
 	return s.mailer.Send(user.Email, fmt.Sprintf("%s Sign Up Request Has Been Reviewed", config.APP_NAME), html)
 }
 
-func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) error {
-	// validate email and username
-	email, username, err := s.userRepo.GetEmailOrUsername(s.ctx, payload.Email, payload.Password)
-	isErrNotFound := errors.Is(err, gorm.ErrRecordNotFound)
-	if err != nil && !isErrNotFound {
+func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (err error) {
+	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
+		// validate email and username
+		email, username, err := s.userRepo.GetEmailOrUsername(s.ctx, payload.Email, payload.Password)
+		isErrNotFound := errors.Is(err, gorm.ErrRecordNotFound)
+		if err != nil && !isErrNotFound {
+			return err
+		}
+		if !isErrNotFound {
+			fe := make(reply.FieldsError)
+			if email == payload.Email {
+				fe["email"] = "email already registered"
+			}
+			if username == payload.Username {
+				fe["username"] = "username already registered"
+			}
+			return &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: "email or username already registered",
+				Fields:  fe,
+			}
+		}
+
+		// create pending user (hash in before create)
+		newUser := payload.ToUser()
+		if err := s.userRepo.Create(s.ctx, &newUser); err != nil {
+			return dblib.GormErrorToReplyError(err, &newUser)
+		}
+
+		// sign up approval must be sent
+		err = s.sendSignUpApproval(newUser)
+		// rollback if failed
 		return err
-	}
-	if !isErrNotFound {
-		fe := make(reply.FieldsError)
-		if email == payload.Email {
-			fe["email"] = "email already registered"
-		}
-		if username == payload.Username {
-			fe["username"] = "username already registered"
-		}
-		return &reply.ErrorPayload{
-			Code:    replylib.CodeConflict,
-			Message: "email or username already registered",
-			Fields:  fe,
-		}
-	}
-
-	// create pending user (hash in before create)
-	newUser := payload.ToUser()
-	if err := s.userRepo.Create(s.ctx, &newUser); err != nil {
-		return dblib.GormErrorToReplyError(err, &newUser)
-	}
-
-	return s.sendSignUpApproval(newUser)
+	})
+	return
 }
 
 func (s *ContextedAuth) SignUpApproval(payload payloads.RequestSignUpApproval) (*models.User, error) {
