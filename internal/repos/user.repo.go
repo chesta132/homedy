@@ -19,7 +19,11 @@ func NewUser(db *gorm.DB) *User {
 	return &User{db, create[models.User]{db}, read[models.User]{db}, update[models.User]{db}, archivable[models.User]{db}}
 }
 
-func (r *User) WithTx(tx *gorm.DB) *User {
+func (r *User) DB() *gorm.DB {
+	return r.db
+}
+
+func (r *User) WithContext(tx *gorm.DB) *User {
 	return NewUser(tx)
 }
 
