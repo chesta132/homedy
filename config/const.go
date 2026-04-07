@@ -13,8 +13,17 @@ const (
 
 	// samba config
 
+	SAMBA_PKG_NAME       string = "samba"
+	SAMBA_PKG_VER        string = "2:4.19.5+dfsg-4ubuntu9.4"
+	SAMBA_PKG            string = SAMBA_PKG_NAME + "=" + SAMBA_PKG_VER
 	SMB_CONF_PATH        string = "/etc/samba/smb.conf"
 	SMB_CONF_BACKUP_PATH string = "/etc/samba/smb.conf.backup"
+
+	// libreoffice config
+
+	LIBRE_PKG_NAME = "libreoffice"
+	LIBRE_PKG_VER  = "4:24.2.7-0ubuntu0.24.04.4"
+	LIBRE_PKG      = LIBRE_PKG_NAME + "=" + LIBRE_PKG_VER
 
 	// logger config
 

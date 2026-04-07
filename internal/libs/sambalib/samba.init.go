@@ -1,12 +1,13 @@
 package sambalib
 
 import (
+	"homedy/config"
 	"homedy/internal/libs/cmdlib"
 	"homedy/internal/libs/logger"
 )
 
 func init() {
-	cmd, err := cmdlib.InstallPkgs("samba")
+	cmd, err := cmdlib.InstallPkgs(config.SAMBA_PKG)
 	// non no pkg to install fatal error
 	if err != nil && err != cmdlib.ErrNoPkgToInstall {
 		logger.Samba.Fatal(err.Error())
