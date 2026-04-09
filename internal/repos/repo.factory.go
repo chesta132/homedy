@@ -7,6 +7,7 @@ type Repos struct {
 	user   *User
 	revoke *Revoke
 	note   *Note
+	oAuth  *OAuth
 }
 
 func New(db *gorm.DB) *Repos {
@@ -32,4 +33,11 @@ func (r *Repos) Note() *Note {
 		r.note = NewNote(r.db)
 	}
 	return r.note
+}
+
+func (r *Repos) OAuth() *OAuth {
+	if r.oAuth == nil {
+		r.oAuth = NewOAuth(r.db)
+	}
+	return r.oAuth
 }

@@ -69,6 +69,7 @@ func main() {
 	{
 		router := routes.New(g, db, repos.New(db))
 		router.RegisterAuth(api.Group("/auth"))
+		router.RegisterOAuth(api.Group("/oauth"))
 
 		api.Use(amw.Protected())
 		router.RegisterWebsocket(api.Group("/ws"))
@@ -76,7 +77,6 @@ func main() {
 		router.RegisterConverter(api.Group("/convert"))
 		router.RegisterNote(api.Group("/notes"))
 		router.RegisterUser(api.Group("/users"))
-
 	}
 
 	g.Run(":" + config.SERVER_PORT)
