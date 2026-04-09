@@ -332,6 +332,24 @@ definitions:
     required:
     - email
     type: object
+  payloads.ResponseGetUser:
+    properties:
+      createdAt:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      email:
+        example: chestaardi4@gmail.com
+        type: string
+      id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      updatedAt:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+      username:
+        example: chesta_ardiona
+        type: string
+    type: object
   payloads.ResponseSignUpApprovalStatus:
     properties:
       email:
@@ -432,7 +450,7 @@ definitions:
       current:
         description: current offset
         type: integer
-      hasHext:
+      hasNext:
         description: true if data more than replied
         type: boolean
       next:
@@ -947,6 +965,8 @@ paths:
                   - properties:
                       code:
                         $ref: '#/definitions/replylib.CodeError'
+                      meta:
+                        $ref: '#/definitions/replylib.Pagination'
                     type: object
               type: object
       summary: Get all client's existing notes with query
@@ -1181,6 +1201,33 @@ paths:
       summary: Restore one client's existing note
       tags:
       - note
+  /oauth/github:
+    get:
+      responses:
+        "307":
+          description: Temporary Redirect
+      summary: Redirect to github oauth
+      tags:
+      - OAuth
+  /oauth/github/callback:
+    get:
+      parameters:
+      - in: query
+        name: code
+        required: true
+        type: string
+      - in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: Temporary Redirect
+      summary: Callback of github oauth
+      tags:
+      - OAuth
   /restore:
     post:
       parameters:
@@ -1405,6 +1452,42 @@ paths:
       summary: Update existing share by name
       tags:
       - folder-sharing
+  /users/{id}:
+    get:
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/payloads.ResponseGetUser'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/replylib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/reply.ErrorPayload'
+                  - properties:
+                      code:
+                        $ref: '#/definitions/replylib.CodeError'
+                    type: object
+              type: object
+      summary: Get existing user by id
+      tags:
+      - user
   /ws/terminal:
     get:
       parameters:

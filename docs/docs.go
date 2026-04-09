@@ -842,6 +842,9 @@ const docTemplate = `{
                                                     "properties": {
                                                         "code": {
                                                             "$ref": "#/definitions/replylib.CodeError"
+                                                        },
+                                                        "meta": {
+                                                            "$ref": "#/definitions/replylib.Pagination"
                                                         }
                                                     }
                                                 }
@@ -1345,6 +1348,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/oauth/github": {
+            "get": {
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Redirect to github oauth",
+                "responses": {
+                    "307": {
+                        "description": "Temporary Redirect"
+                    }
+                }
+            }
+        },
+        "/oauth/github/callback": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Callback of github oauth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": "Temporary Redirect"
+                    }
+                }
+            }
+        },
         "/restore": {
             "post": {
                 "produces": [
@@ -1728,6 +1774,75 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/models.Shares"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/reply.ErrorPayload"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "code": {
+                                                            "$ref": "#/definitions/replylib.CodeError"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get existing user by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/replylib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/payloads.ResponseGetUser"
                                         }
                                     }
                                 }
@@ -2303,6 +2418,31 @@ const docTemplate = `{
                 }
             }
         },
+        "payloads.ResponseGetUser": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "chesta_ardiona"
+                }
+            }
+        },
         "payloads.ResponseSignUpApprovalStatus": {
             "type": "object",
             "properties": {
@@ -2438,7 +2578,7 @@ const docTemplate = `{
                     "description": "current offset",
                     "type": "integer"
                 },
-                "hasHext": {
+                "hasNext": {
                     "description": "true if data more than replied",
                     "type": "boolean"
                 },

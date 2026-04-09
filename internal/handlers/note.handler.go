@@ -50,7 +50,7 @@ func (h *Note) CreateOne(c *gin.Context) {
 // @Produce      json
 // @Param				 payload  query	payloads.RequestGetManyNote	true	"get many option"
 // @Success      200  		{object}  replylib.Envelope{data=[]models.Note}
-// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError,meta={replylib.Pagination}}}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError,meta=replylib.Pagination}}
 // @Router			 /notes [get]
 func (h *Note) GetMany(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
