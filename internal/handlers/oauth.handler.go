@@ -44,7 +44,7 @@ func (h *OAuth) BindGithub(c *gin.Context) {
 func (h *OAuth) CallbackGithub(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	u, _ := url.Parse(config.FRONTEND_URL)
-	u.Path = "/account"
+	u.Path = "/account/links"
 
 	payload, err := ginlib.BindAndValidate[payloads.RequestGithubOAuthCallback](c.ShouldBindQuery)
 	if err != nil {

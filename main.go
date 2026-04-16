@@ -49,6 +49,8 @@ func main() {
 		panic(err)
 	}
 
+	rdb := database.ConnectRedis()
+
 	g := gin.Default()
 	g.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{config.FRONTEND_URL},
@@ -67,7 +69,7 @@ func main() {
 	}
 
 	{
-		router := routes.New(g, db, repos.New(db))
+		router := routes.New(g, db, repos.New(db, rdb))
 		router.RegisterAuth(api.Group("/auth"))
 		router.RegisterOAuth(api.Group("/oauth"))
 
@@ -77,6 +79,7 @@ func main() {
 		router.RegisterConverter(api.Group("/convert"))
 		router.RegisterNote(api.Group("/notes"))
 		router.RegisterUser(api.Group("/users"))
+		router.RegisterDeploy(api.Group("/deploy"))
 	}
 
 	g.Run(":" + config.SERVER_PORT)

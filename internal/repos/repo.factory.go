@@ -1,17 +1,27 @@
 package repos
 
-import "gorm.io/gorm"
+import (
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+)
 
 type Repos struct {
-	db     *gorm.DB
-	user   *User
-	revoke *Revoke
-	note   *Note
-	oAuth  *OAuth
+	db         *gorm.DB
+	rdb        *redis.Client
+	user       *User
+	revoke     *Revoke
+	note       *Note
+	oAuth      *OAuth
+	deployRepo *DeployRepo
+	deployLog  *DeployLog
 }
 
-func New(db *gorm.DB) *Repos {
-	return &Repos{db: db}
+func New(db *gorm.DB, rdb *redis.Client) *Repos {
+	return &Repos{db: db, rdb: rdb}
+}
+
+func (r *Repos) RDB() *redis.Client {
+	return r.rdb
 }
 
 func (r *Repos) User() *User {
@@ -40,4 +50,18 @@ func (r *Repos) OAuth() *OAuth {
 		r.oAuth = NewOAuth(r.db)
 	}
 	return r.oAuth
+}
+
+func (r *Repos) DeployRepo() *DeployRepo {
+	if r.deployRepo == nil {
+		r.deployRepo = NewDeployRepo(r.db)
+	}
+	return r.deployRepo
+}
+
+func (r *Repos) DeployLog() *DeployLog {
+	if r.deployLog == nil {
+		r.deployLog = NewDeployLog(r.db)
+	}
+	return r.deployLog
 }
