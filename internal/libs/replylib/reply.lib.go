@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/chesta132/goreply/reply"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +17,9 @@ func HandleError(err error, rp *reply.Reply) {
 		rp.Error(ErrorPayloadToErrorArg(*err)).FailJSON()
 		return
 	}
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, redis.Nil) {
 		rp.Error(CodeNotFound, err.Error()).FailJSON()
-		return 
+		return
 	}
 	rp.Error(CodeServerError, err.Error()).FailJSON()
 }

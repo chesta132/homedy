@@ -31,14 +31,15 @@ type DeployLog struct {
 }
 
 type FilteredGHRepo struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	FullName string `json:"fullName"`
+	ID       int64  `json:"id" validate:"required"`
+	Name     string `json:"name" validate:"required"`
+	FullName string `json:"fullName" validate:"required"`
 }
 
 // for redis
 // session on key
 type DeploySession struct {
-	UserID string `redis:"userId"`
-	Repos  string `redis:"repos"`
+	UserID       string `redis:"userId"`
+	Repos        string `redis:"repos"`
+	SelectedRepo string `redis:"selectedRepo"`
 }

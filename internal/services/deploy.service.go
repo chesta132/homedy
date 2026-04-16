@@ -29,20 +29,21 @@ package services
 
 import (
 	"context"
-	"encoding/json"
+	"homedy/internal/libs/replylib"
 	"homedy/internal/middlewares"
+	"homedy/internal/models"
 	"homedy/internal/models/payloads"
 	"homedy/internal/repos"
 
+	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 type Deploy struct {
-	rdb            *redis.Client
-	oAuthRepo      *repos.OAuth
-	deployRepoRepo *repos.DeployRepo
-	deployLogRepo  *repos.DeployLog
+	oAuthRepo         *repos.OAuth
+	deployRepoRepo    *repos.DeployRepo
+	deployLogRepo     *repos.DeployLog
+	deploySessionRepo *repos.DeploySession
 }
 
 type ContextedDeploy struct {
@@ -51,41 +52,50 @@ type ContextedDeploy struct {
 	ctx context.Context
 }
 
-func NewDeploy(rdb *redis.Client, oAuthRepo *repos.OAuth, deployRepoRepo *repos.DeployRepo, deployLogRepo *repos.DeployLog) *Deploy {
-	return &Deploy{rdb, oAuthRepo, deployRepoRepo, deployLogRepo}
+func NewDeploy(oAuthRepo *repos.OAuth, deployRepoRepo *repos.DeployRepo, deployLogRepo *repos.DeployLog, deploySessionRepo *repos.DeploySession) *Deploy {
+	return &Deploy{oAuthRepo, deployRepoRepo, deployLogRepo, deploySessionRepo}
 }
 
 func (s *Deploy) AttachContext(c *gin.Context) *ContextedDeploy {
 	return &ContextedDeploy{*s, c, c.Request.Context()}
 }
 
-func (s *ContextedDeploy) GetRepos(payload payloads.TemplateWithSession) (repos []payloads.ResponseGetRepo, err error) {
+func (s *ContextedDeploy) GetRepos(payload payloads.TemplateWithSession) ([]models.FilteredGHRepo, error) {
 	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
 		return nil, err
 	}
 
-	var reposStr string
-	err = s.rdb.HGet(s.ctx, "deploy:session:"+payload.Session, "repos").Scan(&reposStr)
-	if err != nil && err != redis.Nil {
-		return nil, err
-	}
-	if err != redis.Nil {
-		if err = json.Unmarshal([]byte(reposStr), &repos); err == nil {
-			return
-		}
-	}
+	return s.deploySessionRepo.GetSessionOrFetch(s.ctx, payload.Session, client)
+}
 
-	ghRepos, _, err := client.Repositories.ListByAuthenticatedUser(s.ctx, nil)
+func (s *ContextedDeploy) SelectRepo(payload payloads.RequestSelectRepo) (*models.FilteredGHRepo, error) {
+	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
 		return nil, err
 	}
-	repos = payloads.ToResponseGetRepos(ghRepos)
 
-	reposBytes, err := json.Marshal(repos)
-	if err == nil {
-		s.rdb.HSet(s.ctx, "deploy:session:"+payload.Session, "repos", string(reposBytes))
+	repos, err := s.deploySessionRepo.GetSessionOrFetch(s.ctx, payload.Session, client)
+	if err != nil {
+		return nil, err
 	}
 
-	return repos, nil
+	var selectedRepo *models.FilteredGHRepo
+	for _, repo := range repos {
+		if repo.ID == payload.ID {
+			selectedRepo = &repo
+		}
+	}
+	if selectedRepo == nil {
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeNotFound,
+			Message: "repository not found",
+		}
+	}
+
+	return selectedRepo, s.deploySessionRepo.SetSelectedRepo(s.ctx, payload.Session, *selectedRepo)
+}
+
+func (s *ContextedDeploy) GetSelectedRepo(payload payloads.TemplateWithSession) (*models.FilteredGHRepo, error) {
+	return s.deploySessionRepo.GetSelectedRepo(s.ctx, payload.Session)
 }

@@ -6,14 +6,15 @@ import (
 )
 
 type Repos struct {
-	db         *gorm.DB
-	rdb        *redis.Client
-	user       *User
-	revoke     *Revoke
-	note       *Note
-	oAuth      *OAuth
-	deployRepo *DeployRepo
-	deployLog  *DeployLog
+	db            *gorm.DB
+	rdb           *redis.Client
+	user          *User
+	revoke        *Revoke
+	note          *Note
+	oAuth         *OAuth
+	deployRepo    *DeployRepo
+	deployLog     *DeployLog
+	deploySession *DeploySession
 }
 
 func New(db *gorm.DB, rdb *redis.Client) *Repos {
@@ -64,4 +65,11 @@ func (r *Repos) DeployLog() *DeployLog {
 		r.deployLog = NewDeployLog(r.db)
 	}
 	return r.deployLog
+}
+
+func (r *Repos) DeploySession() *DeploySession {
+	if r.deploySession == nil {
+		r.deploySession = NewDeploySession(r.rdb)
+	}
+	return r.deploySession
 }

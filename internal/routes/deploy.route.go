@@ -9,7 +9,7 @@ import (
 )
 
 func (rt *Router) RegisterDeploy(group *gin.RouterGroup) {
-	deploySvc := services.NewDeploy(rt.repos.RDB(), rt.repos.OAuth(), rt.repos.DeployRepo(), rt.repos.DeployLog())
+	deploySvc := services.NewDeploy(rt.repos.OAuth(), rt.repos.DeployRepo(), rt.repos.DeployLog(), rt.repos.DeploySession())
 	h := handlers.NewDeploy(deploySvc)
 
 	dmw := middlewares.NewDeploy(rt.repos.RDB(), rt.repos.OAuth())
@@ -18,5 +18,10 @@ func (rt *Router) RegisterDeploy(group *gin.RouterGroup) {
 	group.POST("/new", h.CreateSession)
 
 	group.Use(dmw.SessionProtected())
+	// user's github repositories
 	group.GET("/:session/repos", h.GetRepos)
+
+	// user's selected repository in cache
+	group.POST("/:session/selected-repo", h.SelectRepo)
+	group.GET("/:session/selected-repo", h.GetSelectedRepo)
 }
