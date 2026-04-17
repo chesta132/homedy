@@ -65,21 +65,21 @@ func (h *Deploy) GetRepos(c *gin.Context) {
 // @Tags         deployment
 // @Accept			 json
 // @Produce      json
-// @Param				 payload  body			payloads.RequestSelectRepo	true	"data to set selected repo"
+// @Param				 payload  body			payloads.RequestSetSelectedRepo	true	"data to set selected repo"
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
-// @Success      200  		{object}  replylib.Envelope{data=models.FilteredGHRepo}
+// @Success      200  		{object}  replylib.Envelope{data=models.SelectedRepoInSession}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
 // @Router			 /deploy/{session}/selected-repo [post]
-func (h *Deploy) SelectRepo(c *gin.Context) {
+func (h *Deploy) SetSelectedRepo(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
-	payload, err := ginlib.BindAndValidate[payloads.RequestSelectRepo](c.ShouldBindUri, c.ShouldBindJSON)
+	payload, err := ginlib.BindAndValidate[payloads.RequestSetSelectedRepo](c.ShouldBindUri, c.ShouldBindJSON)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
 	}
 
-	repo, err := h.deploySvc.AttachContext(c).SelectRepo(payload)
+	repo, err := h.deploySvc.AttachContext(c).SetSelectedRepo(payload)
 	if err != nil {
 		replylib.HandleError(err, rp)
 		return
@@ -92,7 +92,7 @@ func (h *Deploy) SelectRepo(c *gin.Context) {
 // @Tags         deployment
 // @Produce      json
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
-// @Success      200  		{object}  replylib.Envelope{data=models.FilteredGHRepo}
+// @Success      200  		{object}  replylib.Envelope{data=models.SelectedRepoInSession}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
 // @Router			 /deploy/{session}/selected-repo [get]
 func (h *Deploy) GetSelectedRepo(c *gin.Context) {
@@ -111,4 +111,29 @@ func (h *Deploy) GetSelectedRepo(c *gin.Context) {
 	}
 
 	rp.Success(repo).OkJSON()
+}
+
+// @Summary      Get branch of repository
+// @Tags         deployment
+// @Produce      json
+// @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
+// @Success      200  		{object}  replylib.Envelope{data=[]models.FilteredGHRepoBranch}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /deploy/{session}/repos/{id}/branches [get]
+func (h *Deploy) GetBranches(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	payload, err := ginlib.BindAndValidate[payloads.RequestGetBranches](c.ShouldBindUri)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	branches, err := h.deploySvc.AttachContext(c).GetBranches(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	rp.Success(branches).OkJSON()
 }

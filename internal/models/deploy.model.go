@@ -36,10 +36,21 @@ type FilteredGHRepo struct {
 	FullName string `json:"fullName" validate:"required"`
 }
 
+type FilteredGHRepoBranch struct {
+	RepoID int64  `json:"repoId"`
+	Name   string `json:"name"`
+}
+
+type SelectedRepoInSession struct {
+	FilteredGHRepo
+	Branch FilteredGHRepoBranch `json:"branch"`
+}
+
 // for redis
 // session on key
 type DeploySession struct {
 	UserID       string `redis:"userId"`
+	GHUsername   string `redis:"ghUsername"`
 	Repos        string `redis:"repos"`
 	SelectedRepo string `redis:"selectedRepo"`
 }

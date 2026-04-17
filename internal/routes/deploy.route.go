@@ -22,6 +22,9 @@ func (rt *Router) RegisterDeploy(group *gin.RouterGroup) {
 	group.GET("/:session/repos", h.GetRepos)
 
 	// user's selected repository in cache
-	group.POST("/:session/selected-repo", h.SelectRepo)
+	group.POST("/:session/selected-repo", h.SetSelectedRepo)
 	group.GET("/:session/selected-repo", h.GetSelectedRepo)
+
+	// user's github branches of repository
+	group.GET("/:session/repos/:id/branches", h.GetBranches)
 }

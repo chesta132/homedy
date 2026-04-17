@@ -19,7 +19,13 @@ func FilterGHRepos(repos []*github.Repository) []models.FilteredGHRepo {
 	return slicelib.Map(repos, func(i int, r *github.Repository) models.FilteredGHRepo { return FilterGHRepo(r) })
 }
 
-type RequestSelectRepo struct {
+type RequestSetSelectedRepo struct {
 	TemplateWithSession
-	ID int64 `json:"id"`
+	ID     int64  `json:"id" validate:"required"` // repo id
+	Branch string `json:"branch" validate:"required"`
+}
+
+type RequestGetBranches struct {
+	TemplateWithSession
+	ID int64 `uri:"id" validate:"required"`
 }

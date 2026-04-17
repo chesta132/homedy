@@ -60,22 +60,26 @@ func (s *Deploy) AttachContext(c *gin.Context) *ContextedDeploy {
 	return &ContextedDeploy{*s, c, c.Request.Context()}
 }
 
+// repos -------------
+
 func (s *ContextedDeploy) GetRepos(payload payloads.TemplateWithSession) ([]models.FilteredGHRepo, error) {
 	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.deploySessionRepo.GetSessionOrFetch(s.ctx, payload.Session, client)
+	return s.deploySessionRepo.GetReposOrFetch(s.ctx, payload.Session, client)
 }
 
-func (s *ContextedDeploy) SelectRepo(payload payloads.RequestSelectRepo) (*models.FilteredGHRepo, error) {
+// branch -------------
+
+func (s *ContextedDeploy) GetBranches(payload payloads.RequestGetBranches) ([]models.FilteredGHRepoBranch, error) {
 	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := s.deploySessionRepo.GetSessionOrFetch(s.ctx, payload.Session, client)
+	repos, err := s.deploySessionRepo.GetReposOrFetch(s.ctx, payload.Session, client)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +88,7 @@ func (s *ContextedDeploy) SelectRepo(payload payloads.RequestSelectRepo) (*model
 	for _, repo := range repos {
 		if repo.ID == payload.ID {
 			selectedRepo = &repo
+			break
 		}
 	}
 	if selectedRepo == nil {
@@ -93,9 +98,52 @@ func (s *ContextedDeploy) SelectRepo(payload payloads.RequestSelectRepo) (*model
 		}
 	}
 
+	branches, err := s.deploySessionRepo.GetBranchesOrFetch(s.ctx, payload.Session, selectedRepo, client)
+	if err != nil {
+		return nil, err
+	}
+
+	return branches, err
+}
+
+// selected repo -------------
+
+func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRepo) (*models.SelectedRepoInSession, error) {
+	client, err := middlewares.GetGithubClient(s.c)
+	if err != nil {
+		return nil, err
+	}
+
+	repos, err := s.deploySessionRepo.GetReposOrFetch(s.ctx, payload.Session, client)
+	if err != nil {
+		return nil, err
+	}
+
+	var selectedRepo *models.SelectedRepoInSession
+	for _, repo := range repos {
+		if repo.ID == payload.ID {
+			branches, err := s.deploySessionRepo.GetBranchesOrFetch(s.ctx, payload.Session, &repo, client)
+			if err != nil {
+				return nil, err
+			}
+			for _, branch := range branches {
+				if branch.Name == payload.Branch {
+					selectedRepo = &models.SelectedRepoInSession{FilteredGHRepo: repo, Branch: branch}
+					break
+				}
+			}
+		}
+	}
+	if selectedRepo == nil {
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeNotFound,
+			Message: "repository or branch not found",
+		}
+	}
+
 	return selectedRepo, s.deploySessionRepo.SetSelectedRepo(s.ctx, payload.Session, *selectedRepo)
 }
 
-func (s *ContextedDeploy) GetSelectedRepo(payload payloads.TemplateWithSession) (*models.FilteredGHRepo, error) {
+func (s *ContextedDeploy) GetSelectedRepo(payload payloads.TemplateWithSession) (*models.SelectedRepoInSession, error) {
 	return s.deploySessionRepo.GetSelectedRepo(s.ctx, payload.Session)
 }
