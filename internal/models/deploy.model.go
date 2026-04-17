@@ -53,4 +53,10 @@ type DeploySession struct {
 	GHUsername   string `redis:"ghUsername"`
 	Repos        string `redis:"repos"`
 	SelectedRepo string `redis:"selectedRepo"`
+	Composes     string `redis:"composes"`
+}
+
+type DeploySessionCompose struct {
+	RepoID  int64  `json:"repoId"`
+	Content string `json:"content"`
 }

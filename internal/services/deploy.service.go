@@ -2,8 +2,9 @@
 // client bind github first
 // client send create deployment session -> server create session with caching (redis/pg)
 // client check available repositories -> server check it on cache first and fallback to fetch github API
-// client select repository -> server send available branches
-// client select branch -> server check is valid and cache it and response with available docker services
+// client select repository in client side
+// client check available branch from selected repository -> server check it on cache first and fallback to fetch github API
+// client select branch (send selected repo and branch) -> server check is valid and cache it and response with available docker services
 //
 //	validation:
 //	- have docker-compose.(yaml/yml)
@@ -29,6 +30,7 @@ package services
 
 import (
 	"context"
+	"homedy/internal/libs/deploylib"
 	"homedy/internal/libs/replylib"
 	"homedy/internal/middlewares"
 	"homedy/internal/models"
@@ -37,6 +39,7 @@ import (
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 type Deploy struct {
@@ -114,11 +117,13 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 		return nil, err
 	}
 
+	// get repos
 	repos, err := s.deploySessionRepo.GetReposOrFetch(s.ctx, payload.Session, client)
 	if err != nil {
 		return nil, err
 	}
 
+	// select repo
 	var selectedRepo *models.SelectedRepoInSession
 	for _, repo := range repos {
 		if repo.ID == payload.ID {
@@ -140,7 +145,40 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 			Message: "repository or branch not found",
 		}
 	}
+	ghUsername := deploylib.GetGHUsernameFromRepo(selectedRepo.FilteredGHRepo)
 
+	// check compose
+	composes, err := s.deploySessionRepo.GetCompose(s.ctx, payload.Session)
+	if err != nil && err != redis.Nil {
+		return nil, err
+	}
+	if err == redis.Nil || err == nil {
+		var skipAdd bool
+		// is compose cached
+		for _, compose := range composes {
+			if compose.RepoID == selectedRepo.ID {
+				skipAdd = true
+				break
+			}
+		}
+
+		// compose add to cache if compose not cached
+		// TODO: add compose validator
+		if !skipAdd {
+			content, err := deploylib.GetDockerCompose(s.ctx, client, ghUsername, selectedRepo.Name)
+			if err != nil {
+				return nil, err
+			}
+			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
+
+			err = s.deploySessionRepo.SetCompose(s.ctx, payload.Session, composes)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// set selected repo
 	return selectedRepo, s.deploySessionRepo.SetSelectedRepo(s.ctx, payload.Session, *selectedRepo)
 }
 

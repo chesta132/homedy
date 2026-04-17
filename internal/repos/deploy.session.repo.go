@@ -45,6 +45,10 @@ func (r *DeploySession) CreateSession(ctx context.Context, userID string, ghUser
 	return id, err
 }
 
+func (r *DeploySession) GetGHUsername(ctx context.Context, session string) (string, error) {
+	return r.rdb.HGet(ctx, deploySessionKey(session), "ghUsername").Result()
+}
+
 // repos --------------
 
 func (r *DeploySession) GetRepos(ctx context.Context, session string) (repos []models.FilteredGHRepo, err error) {
@@ -131,6 +135,10 @@ func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID 
 	}
 
 	branches = slicelib.Filter(branches, func(idx int, val models.FilteredGHRepoBranch) bool { return val.RepoID == repoID })
+	// branches must be at least one
+	if len(branches) == 0 {
+		return nil, redis.Nil
+	}
 	return
 }
 
@@ -139,11 +147,8 @@ func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, 
 	if err == nil {
 		return
 	}
-	ghUsername, err := r.rdb.HGet(ctx, deploySessionKey(session), "ghUsername").Result()
-	if err != nil {
-		return nil, err
-	}
 
+	ghUsername := deploylib.GetGHUsernameFromRepo(*repo)
 	ghBranch, _, err := ghClient.Repositories.ListBranches(ctx, ghUsername, repo.Name, nil)
 	if err != nil {
 		return nil, err
@@ -164,4 +169,28 @@ func (r *DeploySession) SetBranches(ctx context.Context, session string, branche
 		return err
 	}
 	return r.rdb.HSet(ctx, deploySessionKey(session), "branches", string(branchesBytes)).Err()
+}
+
+// compose --------------
+
+func (r *DeploySession) GetCompose(ctx context.Context, session string) (composes []models.DeploySessionCompose, err error) {
+	var composeStr string
+	err = r.rdb.HGet(ctx, deploySessionKey(session), "composes").Scan(&composeStr)
+	if err != nil {
+		return nil, err
+	}
+	if composeStr == "" {
+		return nil, redis.Nil
+	}
+
+	err = json.Unmarshal([]byte(composeStr), &composes)
+	return
+}
+
+func (r *DeploySession) SetCompose(ctx context.Context, session string, compose []models.DeploySessionCompose) error {
+	composeBytes, err := json.Marshal(compose)
+	if err != nil {
+		return err
+	}
+	return r.rdb.HSet(ctx, deploySessionKey(session), "composes", string(composeBytes)).Err()
 }
