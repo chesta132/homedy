@@ -1,12 +1,10 @@
 package config
 
 import (
-	"bufio"
 	"fmt"
 	"homedy/flags"
 	"net"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -51,20 +49,16 @@ func getMachineRunOnUrl(env string) string {
 }
 
 func init() {
+	// if env file, else env exported
 	envPath := *flags.EnvPath
-	if envPath == "" {
-		// cmdlib.Input
-		fmt.Print("env path: ")
-		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
-		envPath = strings.TrimSpace(input)
+	if envPath != "" {
+		err := godotenv.Load(envPath)
+		if err != nil {
+			panic(err)
+		}
+		ReloadEnv()
 	}
 
-	err := godotenv.Load(envPath)
-	if err != nil {
-		panic(err)
-	}
-	ReloadEnv()
 	if !IsEnvDev() && !IsEnvProd() {
 		panic("[ENVIRONMENT] invalid environment, must be 'development' or 'production'")
 	}
