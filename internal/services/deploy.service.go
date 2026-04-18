@@ -38,6 +38,7 @@ import (
 	"homedy/internal/repos"
 
 	"github.com/chesta132/goreply/reply"
+	"github.com/docker/compose/v5/pkg/api"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
@@ -47,6 +48,7 @@ type Deploy struct {
 	deployRepoRepo    *repos.DeployRepo
 	deployLogRepo     *repos.DeployLog
 	deploySessionRepo *repos.DeploySession
+	composeService    api.Compose
 }
 
 type ContextedDeploy struct {
@@ -55,8 +57,8 @@ type ContextedDeploy struct {
 	ctx context.Context
 }
 
-func NewDeploy(oAuthRepo *repos.OAuth, deployRepoRepo *repos.DeployRepo, deployLogRepo *repos.DeployLog, deploySessionRepo *repos.DeploySession) *Deploy {
-	return &Deploy{oAuthRepo, deployRepoRepo, deployLogRepo, deploySessionRepo}
+func NewDeploy(oAuthRepo *repos.OAuth, deployRepoRepo *repos.DeployRepo, deployLogRepo *repos.DeployLog, deploySessionRepo *repos.DeploySession, composeService api.Compose) *Deploy {
+	return &Deploy{oAuthRepo, deployRepoRepo, deployLogRepo, deploySessionRepo, composeService}
 }
 
 func (s *Deploy) AttachContext(c *gin.Context) *ContextedDeploy {
@@ -163,14 +165,19 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 		}
 
 		// compose add to cache if compose not cached
-		// TODO: add compose validator
 		if !skipAdd {
 			content, err := deploylib.GetDockerCompose(s.ctx, client, ghUsername, selectedRepo.Name)
 			if err != nil {
 				return nil, err
 			}
-			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
 
+			// validate docker compose
+			_, err = deploylib.LoadDockerCompose(s.ctx, s.composeService, payload.Session, content)
+			if err != nil {
+				return nil, err
+			}
+
+			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
 			err = s.deploySessionRepo.SetCompose(s.ctx, payload.Session, composes)
 			if err != nil {
 				return nil, err

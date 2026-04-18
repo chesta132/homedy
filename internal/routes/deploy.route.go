@@ -5,11 +5,12 @@ import (
 	"homedy/internal/middlewares"
 	"homedy/internal/services"
 
+	"github.com/docker/compose/v5/pkg/api"
 	"github.com/gin-gonic/gin"
 )
 
-func (rt *Router) RegisterDeploy(group *gin.RouterGroup) {
-	deploySvc := services.NewDeploy(rt.repos.OAuth(), rt.repos.DeployRepo(), rt.repos.DeployLog(), rt.repos.DeploySession())
+func (rt *Router) RegisterDeploy(group *gin.RouterGroup, composeService api.Compose) {
+	deploySvc := services.NewDeploy(rt.repos.OAuth(), rt.repos.DeployRepo(), rt.repos.DeployLog(), rt.repos.DeploySession(), composeService)
 	h := handlers.NewDeploy(deploySvc)
 
 	dmw := middlewares.NewDeploy(rt.repos.RDB(), rt.repos.OAuth())

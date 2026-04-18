@@ -18,6 +18,8 @@ import (
 	"homedy/internal/repos"
 	"homedy/internal/routes"
 
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/compose/v5/pkg/compose"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -32,6 +34,7 @@ import (
 // @host		localhost:8080
 // @BasePath	/api
 func main() {
+	// gorm
 	gormLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -41,7 +44,6 @@ func main() {
 			Colorful:                  true,
 		},
 	)
-
 	db, err := database.Connect(&gorm.Config{
 		Logger: gormLogger,
 	})
@@ -49,8 +51,20 @@ func main() {
 		panic(err)
 	}
 
+	// redis
 	rdb := database.ConnectRedis()
 
+	// docker
+	dockerCLI, err := command.NewDockerCli()
+	if err != nil {
+		panic(err)
+	}
+	composeSvc, err := compose.NewComposeService(dockerCLI)
+	if err != nil {
+		panic(err)
+	}
+
+	// gin
 	g := gin.Default()
 	g.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{config.FRONTEND_URL},
@@ -79,7 +93,7 @@ func main() {
 		router.RegisterConverter(api.Group("/convert"))
 		router.RegisterNote(api.Group("/notes"))
 		router.RegisterUser(api.Group("/users"))
-		router.RegisterDeploy(api.Group("/deploy"))
+		router.RegisterDeploy(api.Group("/deploy"), composeSvc)
 	}
 
 	g.Run(":" + config.SERVER_PORT)
