@@ -28,11 +28,11 @@ func deploySessionKey(session string) string {
 // session --------------
 
 // returns session id and error
-func (r *DeploySession) CreateSession(ctx context.Context, userID string, ghUsername string) (string, error) {
+func (r *DeploySession) CreateSession(ctx context.Context, userID string) (string, error) {
 	id := uuid.NewString()
 	key := deploySessionKey(id)
 
-	err := r.rdb.HSet(ctx, key, models.DeploySession{UserID: userID, GHUsername: ghUsername}).Err()
+	err := r.rdb.HSet(ctx, key, models.DeploySession{UserID: userID}).Err()
 	if err != nil {
 		return "", err
 	}
@@ -48,10 +48,6 @@ func (r *DeploySession) CreateSession(ctx context.Context, userID string, ghUser
 func (r *DeploySession) RemoveSession(ctx context.Context, session string) error {
 	key := deploySessionKey(session)
 	return r.rdb.Del(ctx, key).Err()
-}
-
-func (r *DeploySession) GetGHUsername(ctx context.Context, session string) (string, error) {
-	return r.rdb.HGet(ctx, deploySessionKey(session), "ghUsername").Result()
 }
 
 // repos --------------

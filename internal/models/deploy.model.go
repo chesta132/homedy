@@ -50,7 +50,6 @@ type SelectedRepoInSession struct {
 // session on key
 type DeploySession struct {
 	UserID       string `redis:"userId"`
-	GHUsername   string `redis:"ghUsername"`
 	Repos        string `redis:"repos"`
 	SelectedRepo string `redis:"selectedRepo"`
 	Composes     string `redis:"composes"`

@@ -10,16 +10,8 @@ func (s *ContextedDeploy) CreateSession() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	client, err := middlewares.GetGithubClient(s.c)
-	if err != nil {
-		return "", err
-	}
-	user, _, err := client.Users.Get(s.ctx, "")
-	if err != nil {
-		return "", err
-	}
 
-	id, err := s.deploySessionRepo.CreateSession(s.ctx, userID, user.GetLogin())
+	id, err := s.deploySessionRepo.CreateSession(s.ctx, userID)
 	if err != nil {
 		return "", err
 	}
