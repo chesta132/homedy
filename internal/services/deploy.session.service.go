@@ -2,6 +2,7 @@ package services
 
 import (
 	"homedy/internal/middlewares"
+	"homedy/internal/models/payloads"
 )
 
 func (s *ContextedDeploy) CreateSession() (string, error) {
@@ -24,4 +25,8 @@ func (s *ContextedDeploy) CreateSession() (string, error) {
 	}
 
 	return id, nil
+}
+
+func (s *ContextedDeploy) InvalidateSession(payload payloads.TemplateWithSession) error {
+	return s.deploySessionRepo.RemoveSession(s.ctx, payload.Session)
 }

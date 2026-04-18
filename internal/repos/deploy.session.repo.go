@@ -45,6 +45,11 @@ func (r *DeploySession) CreateSession(ctx context.Context, userID string, ghUser
 	return id, err
 }
 
+func (r *DeploySession) RemoveSession(ctx context.Context, session string) error {
+	key := deploySessionKey(session)
+	return r.rdb.Del(ctx, key).Err()
+}
+
 func (r *DeploySession) GetGHUsername(ctx context.Context, session string) (string, error) {
 	return r.rdb.HGet(ctx, deploySessionKey(session), "ghUsername").Result()
 }

@@ -19,6 +19,9 @@ func (rt *Router) RegisterDeploy(group *gin.RouterGroup, composeService api.Comp
 	group.POST("/new", h.CreateSession)
 
 	group.Use(dmw.SessionProtected())
+	// session
+	group.DELETE("/:session/invalidate", h.InvalidateSession)
+
 	// user's github repositories
 	group.GET("/:session/repos", h.GetRepos)
 

@@ -18,6 +18,10 @@ func NewDeploy(deploySvc *services.Deploy) *Deploy {
 	return &Deploy{deploySvc}
 }
 
+// TODO: update endpoint like
+// /deploy/new -> /deploy/session [post]
+// /deploy/{session}/* -> /deploy/session/{session}/*
+
 // @Summary      Create new session
 // @Tags         deployment
 // @Produce      json
@@ -34,6 +38,30 @@ func (h *Deploy) CreateSession(c *gin.Context) {
 	}
 
 	rp.Success(payloads.TemplateWithSession{Session: session}).OkJSON()
+}
+
+// @Summary      Create new session
+// @Tags         deployment
+// @Produce      json
+// @Success      200  		{object}  replylib.Envelope "data is null"
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /deploy/{session}/invalidate [delete]
+func (h *Deploy) InvalidateSession(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	payload, err := ginlib.BindAndValidate[payloads.TemplateWithSession](c.ShouldBindUri)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	err = h.deploySvc.AttachContext(c).InvalidateSession(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	rp.Success(nil).OkJSON()
 }
 
 // @Summary      Get client's existing repositories
