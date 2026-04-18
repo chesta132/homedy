@@ -8,6 +8,7 @@ import (
 	"homedy/internal/repos"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
+	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v68/github"
 	"github.com/redis/go-redis/v9"
@@ -82,6 +83,9 @@ func (mw *Deploy) SessionProtected() gin.HandlerFunc {
 
 		var rUserID string
 		err = mw.rdb.HGet(c.Request.Context(), "deploy:session:"+payload.Session, "userId").Scan(&rUserID)
+		if err == redis.Nil {
+			err = &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "invalid session"}
+		}
 		if err != nil {
 			replylib.HandleError(err, rp)
 			return
