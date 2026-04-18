@@ -2,7 +2,6 @@ package repos
 
 import (
 	"context"
-	"encoding/json"
 	"homedy/internal/libs/deploylib"
 	"homedy/internal/libs/slicelib"
 	"homedy/internal/models"
@@ -15,10 +14,11 @@ import (
 
 type DeploySession struct {
 	rdb *redis.Client
+	redisRepo
 }
 
 func NewDeploySession(rdb *redis.Client) *DeploySession {
-	return &DeploySession{rdb}
+	return &DeploySession{rdb, redisRepo{rdb}}
 }
 
 func deploySessionKey(session string) string {
@@ -53,25 +53,12 @@ func (r *DeploySession) RemoveSession(ctx context.Context, session string) error
 // repos --------------
 
 func (r *DeploySession) GetRepos(ctx context.Context, session string) (repos []models.FilteredGHRepo, err error) {
-	var reposStr string
-	err = r.rdb.HGet(ctx, deploySessionKey(session), "repos").Scan(&reposStr)
-	if err != nil {
-		return nil, err
-	}
-	if reposStr == "" {
-		return nil, redis.Nil
-	}
-
-	err = json.Unmarshal([]byte(reposStr), &repos)
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "repos", &repos)
 	return
 }
 
 func (r *DeploySession) SetRepos(ctx context.Context, session string, repos []models.FilteredGHRepo) error {
-	reposBytes, err := json.Marshal(repos)
-	if err != nil {
-		return err
-	}
-	return r.rdb.HSet(ctx, deploySessionKey(session), "repos", string(reposBytes)).Err()
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"repos": repos})
 }
 
 func (r *DeploySession) GetReposOrFetch(ctx context.Context, session string, ghClient *github.Client) (repos []models.FilteredGHRepo, err error) {
@@ -96,43 +83,21 @@ func (r *DeploySession) GetReposOrFetch(ctx context.Context, session string, ghC
 
 // selected repo --------------
 
-func (r *DeploySession) SetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
-	repoBytes, err := json.Marshal(repo)
-	if err != nil {
-		return err
-	}
-	return r.rdb.HSet(ctx, deploySessionKey(session), "selectedRepo", string(repoBytes)).Err()
+func (r *DeploySession) GetSelectedRepo(ctx context.Context, session string) (repo *models.SelectedRepoInSession, err error) {
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "selectedRepo", &repo)
+	return
 }
 
-func (r *DeploySession) GetSelectedRepo(ctx context.Context, session string) (repo *models.SelectedRepoInSession, err error) {
-	var repoStr string
-	err = r.rdb.HGet(ctx, deploySessionKey(session), "selectedRepo").Scan(&repoStr)
-	if err != nil {
-		return nil, err
-	}
-	if repoStr == "" {
-		return nil, redis.Nil
-	}
-
-	err = json.Unmarshal([]byte(repoStr), &repo)
-	return
+func (r *DeploySession) SetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"selectedRepo": repo})
 }
 
 // branches --------------
 
 func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID int64) (branches []models.FilteredGHRepoBranch, err error) {
-	var branchesStr string
-	err = r.rdb.HGet(ctx, deploySessionKey(session), "branches").Scan(&branchesStr)
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "branches", &branches)
 	if err != nil {
 		return nil, err
-	}
-	if branchesStr == "" {
-		return nil, redis.Nil
-	}
-
-	err = json.Unmarshal([]byte(branchesStr), &branches)
-	if err != nil {
-		return
 	}
 
 	branches = slicelib.Filter(branches, func(idx int, val models.FilteredGHRepoBranch) bool { return val.RepoID == repoID })
@@ -141,6 +106,10 @@ func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID 
 		return nil, redis.Nil
 	}
 	return
+}
+
+func (r *DeploySession) SetBranches(ctx context.Context, session string, branches []models.FilteredGHRepoBranch) error {
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"branches": branches})
 }
 
 func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, repo *models.FilteredGHRepo, ghClient *github.Client) (branches []models.FilteredGHRepoBranch, err error) {
@@ -164,34 +133,13 @@ func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, 
 	return branches, nil
 }
 
-func (r *DeploySession) SetBranches(ctx context.Context, session string, branches []models.FilteredGHRepoBranch) error {
-	branchesBytes, err := json.Marshal(branches)
-	if err != nil {
-		return err
-	}
-	return r.rdb.HSet(ctx, deploySessionKey(session), "branches", string(branchesBytes)).Err()
-}
-
 // compose --------------
 
-func (r *DeploySession) GetCompose(ctx context.Context, session string) (composes []models.DeploySessionCompose, err error) {
-	var composeStr string
-	err = r.rdb.HGet(ctx, deploySessionKey(session), "composes").Scan(&composeStr)
-	if err != nil {
-		return nil, err
-	}
-	if composeStr == "" {
-		return nil, redis.Nil
-	}
-
-	err = json.Unmarshal([]byte(composeStr), &composes)
+func (r *DeploySession) GetComposes(ctx context.Context, session string) (composes []models.DeploySessionCompose, err error) {
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "composes", &composes)
 	return
 }
 
-func (r *DeploySession) SetCompose(ctx context.Context, session string, compose []models.DeploySessionCompose) error {
-	composeBytes, err := json.Marshal(compose)
-	if err != nil {
-		return err
-	}
-	return r.rdb.HSet(ctx, deploySessionKey(session), "composes", string(composeBytes)).Err()
+func (r *DeploySession) SetComposes(ctx context.Context, session string, composes []models.DeploySessionCompose) error {
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"composes": composes})
 }

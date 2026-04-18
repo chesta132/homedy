@@ -150,7 +150,7 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 	ghUsername := deploylib.GetGHUsernameFromRepo(selectedRepo.FilteredGHRepo)
 
 	// check compose
-	composes, err := s.deploySessionRepo.GetCompose(s.ctx, payload.Session)
+	composes, err := s.deploySessionRepo.GetComposes(s.ctx, payload.Session)
 	if err != nil && err != redis.Nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 			}
 
 			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
-			err = s.deploySessionRepo.SetCompose(s.ctx, payload.Session, composes)
+			err = s.deploySessionRepo.SetComposes(s.ctx, payload.Session, composes)
 			if err != nil {
 				return nil, err
 			}
