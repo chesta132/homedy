@@ -33,5 +33,5 @@ func (r *redisRepo) hSetWithParse(ctx context.Context, key string, sets map[stri
 		}
 		setsStr[key] = string(dataBytes)
 	}
-	return r.rdb.HSet(ctx, key).Err()
+	return r.rdb.HSet(ctx, key, setsStr).Err()
 }

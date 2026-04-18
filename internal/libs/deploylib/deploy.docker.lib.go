@@ -31,6 +31,8 @@ func LoadDockerCompose(ctx context.Context, service api.Compose, id, composeCont
 		return nil, err
 	}
 
+	// FIXME: load project include checking env file which is temp dir haven't
+	// it'll return error because of it
 	project, err := service.LoadProject(ctx, api.ProjectLoadOptions{
 		ConfigPaths: []string{path},
 		// identify by DockerProjectName(id)

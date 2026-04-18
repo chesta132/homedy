@@ -43,7 +43,8 @@ type FilteredGHRepoBranch struct {
 
 type SelectedRepoInSession struct {
 	FilteredGHRepo
-	Branch FilteredGHRepoBranch `json:"branch"`
+	Branch   FilteredGHRepoBranch `json:"branch"`
+	Services []string             `json:"services"`
 }
 
 // for redis

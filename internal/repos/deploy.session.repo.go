@@ -143,3 +143,48 @@ func (r *DeploySession) GetComposes(ctx context.Context, session string) (compos
 func (r *DeploySession) SetComposes(ctx context.Context, session string, composes []models.DeploySessionCompose) error {
 	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"composes": composes})
 }
+
+// func (r *DeploySession) GetComposeOrFetch(ctx context.Context, session string, repo *models.SelectedRepoInSession, ghClient *github.Client) (string, error) {
+// 	composes, err := r.GetComposes(ctx, session)
+// 	if err != nil && err != redis.Nil {
+// 		return "", err
+// 	}
+
+// 	if err == redis.Nil || err == nil {
+// 		var skipAdd bool
+// 		// is compose cached
+// 		for _, compose := range composes {
+// 			if compose.RepoID == repo.ID {
+// 				// // set services and validate docker compose
+// 				// project, err := deploylib.LoadDockerCompose(ctx, s.composeService, session, compose.Content)
+// 				// if err != nil {
+// 				// 	return nil, err
+// 				// }
+// 				// selectedRepo.Services = project.ServiceNames()
+// 				skipAdd = true
+// 				break
+// 			}
+// 		}
+
+// 		// compose add to cache if compose not cached
+// 		if !skipAdd {
+// 			content, err := deploylib.GetDockerCompose(ctx, client, ghUsername, selectedRepo.Name)
+// 			if err != nil {
+// 				return "", err
+// 			}
+
+// 			// set services and validate docker compose
+// 			project, err := deploylib.LoadDockerCompose(ctx, s.composeService, session, content)
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			repo.Services = project.ServiceNames()
+
+// 			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
+// 			err = r.SetComposes(ctx, session, composes)
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 		}
+// 	}
+// }
