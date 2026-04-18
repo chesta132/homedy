@@ -15,20 +15,20 @@ func (rt *Router) RegisterDeploy(group *gin.RouterGroup, composeService api.Comp
 
 	dmw := middlewares.NewDeploy(rt.repos.RDB(), rt.repos.OAuth())
 
+	// oauth validate
 	group.Use(dmw.Protected())
-	group.POST("/new", h.CreateSession)
 
+	// session related
+	group.POST("/session", h.CreateSession)
 	group.Use(dmw.SessionProtected())
-	// session
-	group.DELETE("/:session/invalidate", h.InvalidateSession)
+	group.DELETE("/session/:session/invalidate", h.InvalidateSession)
 
 	// user's github repositories
-	group.GET("/:session/repos", h.GetRepos)
+	group.GET("/session/:session/repos", h.GetRepos)
+	// user's github branches of repository
+	group.GET("/session/:session/repos/:id/branches", h.GetBranches)
 
 	// user's selected repository in cache
-	group.POST("/:session/selected-repo", h.SetSelectedRepo)
-	group.GET("/:session/selected-repo", h.GetSelectedRepo)
-
-	// user's github branches of repository
-	group.GET("/:session/repos/:id/branches", h.GetBranches)
+	group.POST("/session/:session/selected-repo", h.SetSelectedRepo)
+	group.GET("/session/:session/selected-repo", h.GetSelectedRepo)
 }

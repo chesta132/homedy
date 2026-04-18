@@ -18,16 +18,12 @@ func NewDeploy(deploySvc *services.Deploy) *Deploy {
 	return &Deploy{deploySvc}
 }
 
-// TODO: update endpoint like
-// /deploy/new -> /deploy/session [post]
-// /deploy/{session}/* -> /deploy/session/{session}/*
-
 // @Summary      Create new session
 // @Tags         deployment
 // @Produce      json
 // @Success      200  		{object}  replylib.Envelope{data=payloads.TemplateWithSession}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/new [post]
+// @Router			 /deploy/session [post]
 func (h *Deploy) CreateSession(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -45,7 +41,7 @@ func (h *Deploy) CreateSession(c *gin.Context) {
 // @Produce      json
 // @Success      200  		{object}  replylib.Envelope "data is null"
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/{session}/invalidate [delete]
+// @Router			 /deploy/session/{session}/invalidate [delete]
 func (h *Deploy) InvalidateSession(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -70,7 +66,7 @@ func (h *Deploy) InvalidateSession(c *gin.Context) {
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
 // @Success      200  		{object}  replylib.Envelope{data=[]models.FilteredGHRepo}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/{session}/repos [get]
+// @Router			 /deploy/session/{session}/repos [get]
 func (h *Deploy) GetRepos(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -97,7 +93,7 @@ func (h *Deploy) GetRepos(c *gin.Context) {
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
 // @Success      200  		{object}  replylib.Envelope{data=models.SelectedRepoInSession}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/{session}/selected-repo [post]
+// @Router			 /deploy/session/{session}/selected-repo [post]
 func (h *Deploy) SetSelectedRepo(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -122,7 +118,7 @@ func (h *Deploy) SetSelectedRepo(c *gin.Context) {
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
 // @Success      200  		{object}  replylib.Envelope{data=models.SelectedRepoInSession}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/{session}/selected-repo [get]
+// @Router			 /deploy/session/{session}/selected-repo [get]
 func (h *Deploy) GetSelectedRepo(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
@@ -147,7 +143,7 @@ func (h *Deploy) GetSelectedRepo(c *gin.Context) {
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
 // @Success      200  		{object}  replylib.Envelope{data=[]models.FilteredGHRepoBranch}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
-// @Router			 /deploy/{session}/repos/{id}/branches [get]
+// @Router			 /deploy/session/{session}/repos/{id}/branches [get]
 func (h *Deploy) GetBranches(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 
