@@ -3,6 +3,7 @@ package converter
 import (
 	"bytes"
 	"fmt"
+	"homedy/config"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,7 +23,7 @@ var pdfConvertMap = map[string]struct {
 // Accepts input as bytes + original filename (for extension hints),
 // writes to temp, converts, reads result, then cleans up.
 func libreofficeConvert(inputData []byte, inputFilename, targetFormat string) ([]byte, error) {
-	tmpDir, err := os.MkdirTemp("", "libreconv-*")
+	tmpDir, err := os.MkdirTemp(config.TEMP_DIR, "libreconv-*")
 	if err != nil {
 		return nil, fmt.Errorf("libreofficeConvert mktemp dir: %w", err)
 	}

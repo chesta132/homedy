@@ -10,6 +10,7 @@ const (
 	// general config
 
 	APP_NAME = "Homedy"
+	TEMP_DIR = "/tmp/homedy"
 
 	// samba config
 

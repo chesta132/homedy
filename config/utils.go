@@ -76,4 +76,6 @@ func init() {
 	if FRONTEND_URL == "" {
 		FRONTEND_URL = getMachineRunOnUrl("FRONTEND_URL")
 	}
+
+	os.MkdirAll(TEMP_DIR, 0755)
 }
