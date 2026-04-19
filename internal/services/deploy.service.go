@@ -41,7 +41,6 @@ import (
 	"github.com/chesta132/goreply/reply"
 	"github.com/docker/compose/v5/pkg/api"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 type Deploy struct {
@@ -114,7 +113,6 @@ func (s *ContextedDeploy) GetBranches(payload payloads.RequestGetBranches) ([]mo
 
 // selected repo -------------
 
-// TODO: refactor service, this func start becoming god func
 func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRepo) (*models.SelectedRepoInSession, error) {
 	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
@@ -128,87 +126,22 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 	}
 
 	// select repo
-	var selectedRepo *models.SelectedRepoInSession
-RepoLoop:
-	for _, repo := range repos {
-		if repo.ID == payload.ID {
-			branches, err := s.deploySessionRepo.GetBranchesOrFetch(s.ctx, payload.Session, &repo, client)
-			if err != nil {
-				return nil, err
-			}
-			for _, branch := range branches {
-				if branch.Name == payload.Branch {
-					selectedRepo = &models.SelectedRepoInSession{FilteredGHRepo: repo, Branch: branch}
-					break RepoLoop
-				}
-			}
-			return nil, &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "branch not found"}
-		}
-	}
-	if selectedRepo == nil {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeNotFound,
-			Message: "repository not found",
-		}
-	}
-	ghUsername := deploylib.GetGHUsernameFromRepo(selectedRepo.FilteredGHRepo)
-
-	// check compose
-	composes, err := s.deploySessionRepo.GetComposes(s.ctx, payload.Session)
-	if err != nil && err != redis.Nil {
+	repo, branch, err := s.deploySessionRepo.GetRepoAndBranchFromRepos(s.ctx, payload.Session, client, repos, payload.ID, payload.Branch)
+	if err != nil {
 		return nil, err
 	}
-	// compose will appended or created
-	if err == redis.Nil || err == nil {
-		var skipAdd bool
-		// is compose cached
-		for _, compose := range composes {
-			if compose.RepoID == selectedRepo.ID {
-				// set services and validate docker compose
-				project, err := deploylib.LoadDockerCompose(s.ctx, payload.Session, compose.Content)
-				if err != nil {
-					return nil, err
-				}
-				selectedRepo.Services = project.ServiceNames()
-				skipAdd = true
-				break
-			}
-		}
 
-		// get from github and append/create compose to cache if compose not cached
-		if !skipAdd {
-			content, err := deploylib.GetDockerCompose(s.ctx, client, ghUsername, selectedRepo.Name)
-			if err != nil {
-				return nil, err
-			}
-
-			// set services and validate docker compose
-			project, err := deploylib.LoadDockerCompose(s.ctx, payload.Session, content)
-			if err != nil {
-				return nil, err
-			}
-			selectedRepo.Services = project.ServiceNames()
-
-			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
-			err = s.deploySessionRepo.SetComposes(s.ctx, payload.Session, composes)
-			if err != nil {
-				return nil, err
-			}
-		}
+	ghUsername := deploylib.GetGHUsernameFromRepo(*repo)
+	project, err := s.deploySessionRepo.SearchComposeProjectOfRepo(s.ctx, payload.Session, client, ghUsername, *repo)
+	if err != nil {
+		return nil, err
 	}
 
+	selectedRepo := models.SelectedRepoInSession{FilteredGHRepo: *repo, Branch: *branch, Services: project.ServiceNames()}
 	// set selected repo
-	oldSelectedRepo, err := s.deploySessionRepo.GetSelectedRepo(s.ctx, payload.Session)
-	if err != nil && err != redis.Nil {
-		return nil, err
-	}
-	if (err == nil && oldSelectedRepo.ID != selectedRepo.ID) || (err == redis.Nil) {
-		if err = s.deploySessionRepo.SetSelectedRepo(s.ctx, payload.Session, *selectedRepo); err != nil {
-			return nil, err
-		}
-	}
+	s.deploySessionRepo.LazySetSelectedRepo(s.ctx, payload.Session, selectedRepo)
 
-	return selectedRepo, nil
+	return &selectedRepo, nil
 }
 
 func (s *ContextedDeploy) GetSelectedRepo(payload payloads.TemplateWithSession) (*models.SelectedRepoInSession, error) {

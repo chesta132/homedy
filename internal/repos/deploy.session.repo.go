@@ -3,10 +3,13 @@ package repos
 import (
 	"context"
 	"homedy/internal/libs/deploylib"
+	"homedy/internal/libs/replylib"
 	"homedy/internal/libs/slicelib"
 	"homedy/internal/models"
 	"time"
 
+	"github.com/chesta132/goreply/reply"
+	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/google/go-github/v68/github"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -84,12 +87,44 @@ func (r *DeploySession) GetReposOrFetch(ctx context.Context, session string, ghC
 // selected repo --------------
 
 func (r *DeploySession) GetSelectedRepo(ctx context.Context, session string) (repo *models.SelectedRepoInSession, err error) {
-	err = r.hGetWithParse(ctx, deploySessionKey(session), "selectedRepo", &repo)
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "repo", &repo)
 	return
 }
 
 func (r *DeploySession) SetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
-	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"selectedRepo": repo})
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"repo": repo})
+}
+
+func (r *DeploySession) LazySetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
+	oldRepo, err := r.GetSelectedRepo(ctx, session)
+	if err != nil && err != redis.Nil {
+		return err
+	}
+	if (err == nil && oldRepo.ID != repo.ID) || (err == redis.Nil) {
+		if err = r.SetSelectedRepo(ctx, session, repo); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *DeploySession) GetRepoAndBranchFromRepos(ctx context.Context, session string, ghClient *github.Client, repos []models.FilteredGHRepo, repoID int64, branchName string) (*models.FilteredGHRepo, *models.FilteredGHRepoBranch, error) {
+	for _, repo := range repos {
+		if repo.ID == repoID {
+			branches, err := r.GetBranchesOrFetch(ctx, session, &repo, ghClient)
+			if err != nil {
+				return nil, nil, err
+			}
+			for _, branch := range branches {
+				if branch.Name == branchName {
+					return &repo, &branch, nil
+
+				}
+			}
+			return nil, nil, &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "branch not found"}
+		}
+	}
+	return nil, nil, &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "repository not found"}
 }
 
 // branches --------------
@@ -144,47 +179,43 @@ func (r *DeploySession) SetComposes(ctx context.Context, session string, compose
 	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"composes": composes})
 }
 
-// func (r *DeploySession) GetComposeOrFetch(ctx context.Context, session string, repo *models.SelectedRepoInSession, ghClient *github.Client) (string, error) {
-// 	composes, err := r.GetComposes(ctx, session)
-// 	if err != nil && err != redis.Nil {
-// 		return "", err
-// 	}
+// this func also cache to session
+func (r *DeploySession) SearchComposeProjectOfRepo(ctx context.Context, session string, ghClient *github.Client, ghUsername string, repo models.FilteredGHRepo) (*types.Project, error) {
+	// check compose
+	composes, err := r.GetComposes(ctx, session)
+	if err != nil && err != redis.Nil {
+		return nil, err
+	}
 
-// 	if err == redis.Nil || err == nil {
-// 		var skipAdd bool
-// 		// is compose cached
-// 		for _, compose := range composes {
-// 			if compose.RepoID == repo.ID {
-// 				// // set services and validate docker compose
-// 				// project, err := deploylib.LoadDockerCompose(ctx, s.composeService, session, compose.Content)
-// 				// if err != nil {
-// 				// 	return nil, err
-// 				// }
-// 				// selectedRepo.Services = project.ServiceNames()
-// 				skipAdd = true
-// 				break
-// 			}
-// 		}
+	// is compose cached
+	for _, compose := range composes {
+		if compose.RepoID == repo.ID {
+			// set services and validate docker compose
+			project, err := deploylib.LoadDockerCompose(ctx, session, compose.Content)
+			if err != nil {
+				return nil, err
+			}
+			return project, nil
+		}
+	}
 
-// 		// compose add to cache if compose not cached
-// 		if !skipAdd {
-// 			content, err := deploylib.GetDockerCompose(ctx, client, ghUsername, selectedRepo.Name)
-// 			if err != nil {
-// 				return "", err
-// 			}
+	// get from github and append/create compose to cache if compose not cached
+	content, err := deploylib.GetDockerCompose(ctx, ghClient, ghUsername, repo.Name)
+	if err != nil {
+		return nil, err
+	}
 
-// 			// set services and validate docker compose
-// 			project, err := deploylib.LoadDockerCompose(ctx, s.composeService, session, content)
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 			repo.Services = project.ServiceNames()
+	// set services and validate docker compose
+	project, err := deploylib.LoadDockerCompose(ctx, session, content)
+	if err != nil {
+		return nil, err
+	}
 
-// 			composes = append(composes, models.DeploySessionCompose{RepoID: selectedRepo.ID, Content: content})
-// 			err = r.SetComposes(ctx, session, composes)
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 		}
-// 	}
-// }
+	composes = append(composes, models.DeploySessionCompose{RepoID: repo.ID, Content: content})
+	err = r.SetComposes(ctx, session, composes)
+	if err != nil {
+		return nil, err
+	}
+
+	return project, nil
+}
