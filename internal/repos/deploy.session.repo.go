@@ -87,12 +87,12 @@ func (r *DeploySession) GetReposOrFetch(ctx context.Context, session string, ghC
 // selected repo --------------
 
 func (r *DeploySession) GetSelectedRepo(ctx context.Context, session string) (repo *models.SelectedRepoInSession, err error) {
-	err = r.hGetWithParse(ctx, deploySessionKey(session), "repo", &repo)
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "selectedRepo", &repo)
 	return
 }
 
 func (r *DeploySession) SetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
-	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"repo": repo})
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"selectedRepo": repo})
 }
 
 func (r *DeploySession) LazySetSelectedRepo(ctx context.Context, session string, repo models.SelectedRepoInSession) error {
@@ -108,20 +108,14 @@ func (r *DeploySession) LazySetSelectedRepo(ctx context.Context, session string,
 	return nil
 }
 
-func (r *DeploySession) GetRepoAndBranchFromRepos(ctx context.Context, session string, ghClient *github.Client, repos []models.FilteredGHRepo, repoID int64, branchName string) (*models.FilteredGHRepo, *models.FilteredGHRepoBranch, error) {
+func (r *DeploySession) GetRepoAndBranchFromRepos(ctx context.Context, session string, ghClient *github.Client, repos []models.FilteredGHRepo, repoID int64) (*models.FilteredGHRepo, []string, error) {
 	for _, repo := range repos {
 		if repo.ID == repoID {
 			branches, err := r.GetBranchesOrFetch(ctx, session, &repo, ghClient)
 			if err != nil {
 				return nil, nil, err
 			}
-			for _, branch := range branches {
-				if branch.Name == branchName {
-					return &repo, &branch, nil
-
-				}
-			}
-			return nil, nil, &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "branch not found"}
+			return &repo, branches, nil
 		}
 	}
 	return nil, nil, &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "repository not found"}
@@ -129,34 +123,33 @@ func (r *DeploySession) GetRepoAndBranchFromRepos(ctx context.Context, session s
 
 // branches --------------
 
-func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID int64) (branches []models.FilteredGHRepoBranch, err error) {
-	err = r.hGetWithParse(ctx, deploySessionKey(session), "branches", &branches)
+func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID int64) ([]string, error) {
+	repoBranches := make(models.DeploySessionRepoBranches)
+	err := r.hGetWithParse(ctx, deploySessionKey(session), "branches", &repoBranches)
 	if err != nil {
 		return nil, err
 	}
-
-	branches = slicelib.Filter(branches, func(idx int, val models.FilteredGHRepoBranch) bool { return val.RepoID == repoID })
-	// branches must be at least one
-	if len(branches) == 0 {
+	branches, ok := repoBranches[repoID]
+	if !ok {
 		return nil, redis.Nil
 	}
-	return
+	return branches, nil
 }
 
-func (r *DeploySession) GetAllBranches(ctx context.Context, session string) (branches []models.FilteredGHRepoBranch, err error) {
-	err = r.hGetWithParse(ctx, deploySessionKey(session), "branches", &branches)
-	return
+func (r *DeploySession) GetAllBranches(ctx context.Context, session string) (models.DeploySessionRepoBranches, error) {
+	repoBranches := make(models.DeploySessionRepoBranches)
+	err := r.hGetWithParse(ctx, deploySessionKey(session), "branches", &repoBranches)
+	return repoBranches, err
 }
 
-func (r *DeploySession) SetBranches(ctx context.Context, session string, branches []models.FilteredGHRepoBranch) error {
-	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"branches": branches})
+func (r *DeploySession) SetBranches(ctx context.Context, session string, repoBranches models.DeploySessionRepoBranches) error {
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"branches": repoBranches})
 }
 
-func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, repo *models.FilteredGHRepo, ghClient *github.Client) (branches []models.FilteredGHRepoBranch, err error) {
-	allBranches, err := r.GetAllBranches(ctx, session)
+func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, repo *models.FilteredGHRepo, ghClient *github.Client) (branches []string, err error) {
+	repoBranches, err := r.GetAllBranches(ctx, session)
 	if err == nil {
-		branches = slicelib.Filter(allBranches, func(idx int, val models.FilteredGHRepoBranch) bool { return val.RepoID == repo.ID })
-		if len(branches) > 0 {
+		if branches, ok := repoBranches[repo.ID]; ok {
 			return branches, nil
 		}
 	}
@@ -166,9 +159,10 @@ func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, 
 	if err != nil {
 		return nil, err
 	}
-	allBranches = append(allBranches, deploylib.FilterGHBranches(ghBranch, repo.ID)...)
+	branches = slicelib.Map(ghBranch, func(i int, b *github.Branch) string { return b.GetName() })
+	repoBranches[repo.ID] = branches
 
-	err = r.SetBranches(ctx, session, allBranches)
+	err = r.SetBranches(ctx, session, repoBranches)
 	if err != nil {
 		return nil, err
 	}
@@ -178,12 +172,13 @@ func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, 
 
 // compose --------------
 
-func (r *DeploySession) GetComposes(ctx context.Context, session string) (composes []models.DeploySessionCompose, err error) {
-	err = r.hGetWithParse(ctx, deploySessionKey(session), "composes", &composes)
-	return
+func (r *DeploySession) GetComposes(ctx context.Context, session string) (models.DeploySessionCompose, error) {
+	composes := make(models.DeploySessionCompose)
+	err := r.hGetWithParse(ctx, deploySessionKey(session), "composes", &composes)
+	return composes, err
 }
 
-func (r *DeploySession) SetComposes(ctx context.Context, session string, composes []models.DeploySessionCompose) error {
+func (r *DeploySession) SetComposes(ctx context.Context, session string, composes models.DeploySessionCompose) error {
 	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"composes": composes})
 }
 
@@ -196,30 +191,28 @@ func (r *DeploySession) SearchComposeProjectOfRepo(ctx context.Context, session 
 	}
 
 	// is compose cached
-	for _, compose := range composes {
-		if compose.RepoID == repo.ID {
-			// set services and validate docker compose
-			project, err := deploylib.LoadDockerCompose(ctx, session, compose.Content)
-			if err != nil {
-				return nil, err
-			}
-			return project, nil
+	if compose, ok := composes[repo.ID]; ok {
+		// set services and validate docker compose
+		project, err := deploylib.LoadDockerCompose(ctx, session, compose)
+		if err != nil {
+			return nil, err
 		}
+		return project, nil
 	}
 
 	// get from github and append/create compose to cache if compose not cached
-	content, err := deploylib.GetDockerCompose(ctx, ghClient, ghUsername, repo.Name)
+	compose, err := deploylib.GetDockerCompose(ctx, ghClient, ghUsername, repo.Name)
 	if err != nil {
 		return nil, err
 	}
 
 	// set services and validate docker compose
-	project, err := deploylib.LoadDockerCompose(ctx, session, content)
+	project, err := deploylib.LoadDockerCompose(ctx, session, compose)
 	if err != nil {
 		return nil, err
 	}
 
-	composes = append(composes, models.DeploySessionCompose{RepoID: repo.ID, Content: content})
+	composes[repo.ID] = compose
 	err = r.SetComposes(ctx, session, composes)
 	if err != nil {
 		return nil, err

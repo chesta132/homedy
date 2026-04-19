@@ -141,7 +141,7 @@ func (h *Deploy) GetSelectedRepo(c *gin.Context) {
 // @Tags         deployment
 // @Produce      json
 // @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
-// @Success      200  		{object}  replylib.Envelope{data=[]models.FilteredGHRepoBranch}
+// @Success      200  		{object}  replylib.Envelope{data=[]string}
 // @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
 // @Router			 /deploy/session/{session}/repos/{id}/branches [get]
 func (h *Deploy) GetBranches(c *gin.Context) {

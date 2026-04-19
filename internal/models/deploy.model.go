@@ -38,15 +38,12 @@ type FilteredGHRepo struct {
 	FullName string `json:"fullName" validate:"required"`
 }
 
-type FilteredGHRepoBranch struct {
-	RepoID int64  `json:"repoId"`
-	Name   string `json:"name"`
-}
+type DeploySessionRepoBranches map[int64][]string
 
 type SelectedRepoInSession struct {
 	FilteredGHRepo
-	Branch   FilteredGHRepoBranch `json:"branch"`
-	Services []string             `json:"services"`
+	Branch   string   `json:"branch"`
+	Services []string `json:"services"`
 }
 
 // for redis
@@ -58,10 +55,7 @@ type DeploySession struct {
 	Composes     string `redis:"composes"`
 }
 
-type DeploySessionCompose struct {
-	RepoID  int64  `json:"repoId"`
-	Content string `json:"content"`
-}
+type DeploySessionCompose map[int64]string
 
 type GlobalEnv types.MappingWithEquals
 type ServiceEnv map[string]types.MappingWithEquals

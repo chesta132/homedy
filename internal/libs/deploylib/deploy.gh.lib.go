@@ -20,14 +20,6 @@ func FilterGHRepos(repos []*github.Repository) []models.FilteredGHRepo {
 	return slicelib.Map(repos, func(i int, r *github.Repository) models.FilteredGHRepo { return FilterGHRepo(r) })
 }
 
-func FilterGHBranch(branch *github.Branch, repoID int64) models.FilteredGHRepoBranch {
-	return models.FilteredGHRepoBranch{Name: branch.GetName(), RepoID: repoID}
-}
-
-func FilterGHBranches(branches []*github.Branch, repoID int64) []models.FilteredGHRepoBranch {
-	return slicelib.Map(branches, func(i int, r *github.Branch) models.FilteredGHRepoBranch { return FilterGHBranch(r, repoID) })
-}
-
 func GetGHUsernameFromRepo(repo models.FilteredGHRepo) string {
 	ghUsername, _, _ := strings.Cut(repo.FullName, "/")
 	return ghUsername

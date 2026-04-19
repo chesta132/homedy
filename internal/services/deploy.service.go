@@ -79,7 +79,7 @@ func (s *ContextedDeploy) GetRepos(payload payloads.TemplateWithSession) ([]mode
 
 // branch -------------
 
-func (s *ContextedDeploy) GetBranches(payload payloads.RequestGetBranches) ([]models.FilteredGHRepoBranch, error) {
+func (s *ContextedDeploy) GetBranches(payload payloads.RequestGetBranches) ([]string, error) {
 	client, err := middlewares.GetGithubClient(s.c)
 	if err != nil {
 		return nil, err
@@ -127,9 +127,23 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 	}
 
 	// select repo
-	repo, branch, err := s.deploySessionRepo.GetRepoAndBranchFromRepos(s.ctx, payload.Session, client, repos, payload.ID, payload.Branch)
+	repo, branches, err := s.deploySessionRepo.GetRepoAndBranchFromRepos(s.ctx, payload.Session, client, repos, payload.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	// validate is branch from client exist
+	var branch string
+	for _, name := range branches {
+		if name == payload.Branch {
+			branch = name
+		}
+	}
+	if branch == "" {
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeNotFound,
+			Message: "branch not found",
+		}
 	}
 
 	ghUsername := deploylib.GetGHUsernameFromRepo(*repo)
@@ -139,11 +153,9 @@ func (s *ContextedDeploy) SetSelectedRepo(payload payloads.RequestSetSelectedRep
 	}
 
 	// TODO: cache service names
-	selectedRepo := models.SelectedRepoInSession{FilteredGHRepo: *repo, Branch: *branch, Services: project.ServiceNames()}
-	// set selected repo
-	s.deploySessionRepo.LazySetSelectedRepo(s.ctx, payload.Session, selectedRepo)
+	selectedRepo := models.SelectedRepoInSession{FilteredGHRepo: *repo, Branch: branch, Services: project.ServiceNames()}
 
-	return &selectedRepo, nil
+	return &selectedRepo, s.deploySessionRepo.LazySetSelectedRepo(s.ctx, payload.Session, selectedRepo)
 }
 
 func (s *ContextedDeploy) GetSelectedRepo(payload payloads.TemplateWithSession) (*models.SelectedRepoInSession, error) {
