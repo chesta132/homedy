@@ -2,11 +2,12 @@ package deploylib
 
 import (
 	"context"
-	"errors"
+	"homedy/internal/libs/replylib"
 	"homedy/internal/libs/slicelib"
 	"homedy/internal/models"
 	"strings"
 
+	"github.com/chesta132/goreply/reply"
 	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/google/go-github/v68/github"
 )
@@ -57,5 +58,5 @@ func GetDockerCompose(ctx context.Context, ghClient *github.Client, ghUsername, 
 			return GetGHContent(ctx, ghClient, ghUsername, repoName, path)
 		}
 	}
-	return "", errors.New("no docker compose")
+	return "", &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: "no docker compose"}
 }
