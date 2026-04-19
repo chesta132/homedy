@@ -165,7 +165,7 @@ RepoLoop:
 		for _, compose := range composes {
 			if compose.RepoID == selectedRepo.ID {
 				// set services and validate docker compose
-				project, err := deploylib.LoadDockerCompose(s.ctx, s.composeService, payload.Session, compose.Content)
+				project, err := deploylib.LoadDockerCompose(s.ctx, payload.Session, compose.Content)
 				if err != nil {
 					return nil, err
 				}
@@ -183,7 +183,7 @@ RepoLoop:
 			}
 
 			// set services and validate docker compose
-			project, err := deploylib.LoadDockerCompose(s.ctx, s.composeService, payload.Session, content)
+			project, err := deploylib.LoadDockerCompose(s.ctx, payload.Session, content)
 			if err != nil {
 				return nil, err
 			}

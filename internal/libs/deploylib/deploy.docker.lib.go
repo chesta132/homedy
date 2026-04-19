@@ -6,6 +6,7 @@ import (
 	"homedy/config"
 	"os"
 
+	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/compose/v5/pkg/api"
 )
@@ -18,7 +19,7 @@ func DockerVolumeName(id string) string {
 	return fmt.Sprintf("deploy-compose-%s-data", id)
 }
 
-func LoadDockerCompose(ctx context.Context, service api.Compose, id, composeContent string) (*types.Project, error) {
+func LoadDockerCompose(ctx context.Context, id, composeContent string) (*types.Project, error) {
 	// create temp bcs load project only accept path
 	file, err := os.CreateTemp(config.TEMP_DIR, "deploy-compose-*")
 	if err != nil {
@@ -31,15 +32,18 @@ func LoadDockerCompose(ctx context.Context, service api.Compose, id, composeCont
 		return nil, err
 	}
 
-	// FIXME: load project include checking env file which is temp dir haven't
-	// it'll return error because of it
-	project, err := service.LoadProject(ctx, api.ProjectLoadOptions{
-		ConfigPaths: []string{path},
-		// identify by DockerProjectName(id)
-		ProjectName: DockerProjectName(id),
-	})
+	opts, err := cli.NewProjectOptions(
+		[]string{path},
+		cli.WithName(DockerProjectName(id)),
+		cli.WithoutEnvironmentResolution, // skip env file lookup
+	)
 	if err != nil {
 		return nil, ErrInvalidDockerCompose
+	}
+
+	project, err := opts.LoadProject(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return project, nil
