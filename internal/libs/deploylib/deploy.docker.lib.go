@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"homedy/config"
+	"maps"
 	"os"
 
 	"github.com/compose-spec/compose-go/v2/cli"
@@ -54,7 +55,9 @@ func RunDockerCompose(ctx context.Context, service api.Compose, project *types.P
 }
 
 type TransformDockerComposeOpt struct {
-	Ports map[string][]types.ServicePortConfig // service name = ports
+	Ports      map[string][]types.ServicePortConfig // service name = ports
+	ServiceEnv map[string]types.MappingWithEquals   // service name = (env key = env value)
+	GlobalEnv  types.MappingWithEquals              // apply to all service | env key = env value
 }
 
 func TransformDockerCompose(id string, project *types.Project, opt TransformDockerComposeOpt) {
@@ -82,6 +85,15 @@ func TransformDockerCompose(id string, project *types.Project, opt TransformDock
 				temp.Volumes[i].Type = "volume"
 				temp.Volumes[i].Source = newVolumeName
 			}
+		}
+
+		// global env
+		if len(opt.GlobalEnv) > 0 {
+			maps.Copy(temp.Environment, opt.GlobalEnv)
+		}
+		// project env
+		if env, ok := opt.ServiceEnv[service]; ok {
+			maps.Copy(temp.Environment, env)
 		}
 
 		project.Services[service] = temp

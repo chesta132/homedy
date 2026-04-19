@@ -161,3 +161,53 @@ func (h *Deploy) GetBranches(c *gin.Context) {
 
 	rp.Success(branches).OkJSON()
 }
+
+// @Summary      Get global env and selected repo env
+// @Tags         deployment
+// @Produce      json
+// @Param				 param	  path			payloads.TemplateWithSession	true	"session param"
+// @Success      200  		{object}  replylib.Envelope{data=payloads.ResponseSessionEnv}
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /deploy/session/{session}/env [get]
+func (h *Deploy) GetEnv(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	payload, err := ginlib.BindAndValidate[payloads.TemplateWithSession](c.ShouldBindUri)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	env, err := h.deploySvc.AttachContext(c).GetEnv(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	rp.Success(env).OkJSON()
+}
+
+// @Summary      Set global and selected repo env. This action is replace behavior
+// @Tags         deployment
+// @Produce      json
+// @Param				 param	  path			payloads.RequestSetSessionEnv	true	"session param"
+// @Success      200  		{object}  replylib.Envelope "data is null"
+// @Response     default  {object}  replylib.Envelope{data=reply.ErrorPayload{code=replylib.CodeError}}
+// @Router			 /deploy/session/{session}/env [post]
+func (h *Deploy) SetEnv(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+
+	payload, err := ginlib.BindAndValidate[payloads.RequestSetSessionEnv](c.ShouldBindUri, c.ShouldBindJSON)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	err = h.deploySvc.AttachContext(c).SetEnv(payload)
+	if err != nil {
+		replylib.HandleError(err, rp)
+		return
+	}
+
+	rp.Success(nil).OkJSON()
+}

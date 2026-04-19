@@ -1,5 +1,7 @@
 package models
 
+import "github.com/compose-spec/compose-go/v2/types"
+
 type DeployRepo struct {
 	Base
 	RepoOwner string `gorm:"not null" json:"repoOwner"`
@@ -59,4 +61,13 @@ type DeploySession struct {
 type DeploySessionCompose struct {
 	RepoID  int64  `json:"repoId"`
 	Content string `json:"content"`
+}
+
+type GlobalEnv types.MappingWithEquals
+type ServiceEnv map[string]types.MappingWithEquals
+type RepoEnv map[int64]ServiceEnv
+
+type DeploySessionEnv struct {
+	Global GlobalEnv
+	Repo   RepoEnv // repo -> service -> env
 }

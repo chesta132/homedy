@@ -31,4 +31,8 @@ func (rt *Router) RegisterDeploy(group *gin.RouterGroup, composeService api.Comp
 	// user's selected repository in cache
 	group.POST("/session/:session/selected-repo", h.SetSelectedRepo)
 	group.GET("/session/:session/selected-repo", h.GetSelectedRepo)
+
+	// user's global env and selected repo env
+	group.GET("/session/:session/env", h.GetEnv)
+	group.POST("/session/:session/env", h.SetEnv)
 }

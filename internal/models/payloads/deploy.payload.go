@@ -29,3 +29,14 @@ type RequestGetBranches struct {
 	TemplateWithSession
 	ID int64 `uri:"id" validate:"required"`
 }
+
+type RequestSetSessionEnv struct {
+	TemplateWithSession
+	Global  models.GlobalEnv  `json:"global"`  // replacing
+	Service models.ServiceEnv `json:"service"` // replacing
+}
+
+type ResponseSessionEnv struct {
+	Global  models.GlobalEnv  `json:"global"`
+	Service models.ServiceEnv `json:"service"`
+}

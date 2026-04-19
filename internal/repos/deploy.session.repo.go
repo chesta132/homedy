@@ -143,14 +143,22 @@ func (r *DeploySession) GetBranches(ctx context.Context, session string, repoID 
 	return
 }
 
+func (r *DeploySession) GetAllBranches(ctx context.Context, session string) (branches []models.FilteredGHRepoBranch, err error) {
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "branches", &branches)
+	return
+}
+
 func (r *DeploySession) SetBranches(ctx context.Context, session string, branches []models.FilteredGHRepoBranch) error {
 	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"branches": branches})
 }
 
 func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, repo *models.FilteredGHRepo, ghClient *github.Client) (branches []models.FilteredGHRepoBranch, err error) {
-	branches, err = r.GetBranches(ctx, session, repo.ID)
+	allBranches, err := r.GetAllBranches(ctx, session)
 	if err == nil {
-		return
+		branches = slicelib.Filter(allBranches, func(idx int, val models.FilteredGHRepoBranch) bool { return val.RepoID == repo.ID })
+		if len(branches) > 0 {
+			return branches, nil
+		}
 	}
 
 	ghUsername := deploylib.GetGHUsernameFromRepo(*repo)
@@ -158,9 +166,9 @@ func (r *DeploySession) GetBranchesOrFetch(ctx context.Context, session string, 
 	if err != nil {
 		return nil, err
 	}
-	branches = deploylib.FilterGHBranches(ghBranch, repo.ID)
+	allBranches = append(allBranches, deploylib.FilterGHBranches(ghBranch, repo.ID)...)
 
-	err = r.SetBranches(ctx, session, branches)
+	err = r.SetBranches(ctx, session, allBranches)
 	if err != nil {
 		return nil, err
 	}
@@ -218,4 +226,27 @@ func (r *DeploySession) SearchComposeProjectOfRepo(ctx context.Context, session 
 	}
 
 	return project, nil
+}
+
+// env --------------
+
+func (r *DeploySession) GetEnv(ctx context.Context, session string) (env models.DeploySessionEnv, err error) {
+	err = r.hGetWithParse(ctx, deploySessionKey(session), "env", &env)
+	if err == nil {
+		var decryptedEnv *models.DeploySessionEnv
+		decryptedEnv, err = deploylib.DecryptSessionEnv(env)
+		if err != nil {
+			return
+		}
+		env = *decryptedEnv
+	}
+	return
+}
+
+func (r *DeploySession) SetEnv(ctx context.Context, session string, env models.DeploySessionEnv) error {
+	encryptedEnv, err := deploylib.EncryptSessionEnv(env)
+	if err != nil {
+		return err
+	}
+	return r.hSetWithParse(ctx, deploySessionKey(session), map[string]any{"env": encryptedEnv})
 }
