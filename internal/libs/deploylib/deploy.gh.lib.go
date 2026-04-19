@@ -7,6 +7,7 @@ import (
 	"homedy/internal/models"
 	"strings"
 
+	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/google/go-github/v68/github"
 )
 
@@ -40,8 +41,7 @@ func GetGHContent(ctx context.Context, ghClient *github.Client, ghUsername, repo
 }
 
 func GetDockerCompose(ctx context.Context, ghClient *github.Client, ghUsername, repoName string) (string, error) {
-	// following docker priority
-	composePriority := []string{"compose.yaml", "compose.yml", "docker-compose.yaml", "docker-compose.yml"}
+	composePath := append(cli.DefaultFileNames, cli.DefaultOverrideFileNames...)
 	_, dir, _, err := ghClient.Repositories.GetContents(ctx, ghUsername, repoName, "", nil)
 	if err != nil {
 		return "", err
@@ -52,7 +52,7 @@ func GetDockerCompose(ctx context.Context, ghClient *github.Client, ghUsername, 
 		filesInRoot[f.GetName()] = f.GetPath()
 	}
 
-	for _, name := range composePriority {
+	for _, name := range composePath {
 		if path, ok := filesInRoot[name]; ok {
 			return GetGHContent(ctx, ghClient, ghUsername, repoName, path)
 		}
